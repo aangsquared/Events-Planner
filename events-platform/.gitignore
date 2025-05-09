@@ -32,6 +32,7 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+events-platform-670fa-firebase-adminsdk-fbsvc-8fe952dfe8.json
 
 # vercel
 .vercel
