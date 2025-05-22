@@ -6,8 +6,9 @@ import FacebookProvider from "next-auth/providers/facebook";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
 import { initializeApp, getApps } from "firebase/app";
+import { getFirestore, doc, getDoc } from "firebase/firestore";
 
-// Initialize Firebase client-side SDK
+// Firebase config
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
   authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
@@ -17,33 +18,26 @@ const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 };
 
-// Initialize Firebase (avoid reinitializing)
 const firebaseApp = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
 const auth = getAuth(firebaseApp);
+const db = getFirestore(firebaseApp);
 
-// Create a credentials object for Firebase
 const credential = cert({
   projectId: process.env.AUTH_FIREBASE_PROJECT_ID,
   clientEmail: process.env.AUTH_FIREBASE_CLIENT_EMAIL,
   privateKey: process.env.AUTH_FIREBASE_PRIVATE_KEY?.replace(/\\n/g, "\n"),
 });
 
-// Configure auth options
 export const authOptions = {
   providers: [
-    // Google OAuth
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
     }),
-
-    // Facebook OAuth
     FacebookProvider({
       clientId: process.env.FACEBOOK_CLIENT_ID!,
       clientSecret: process.env.FACEBOOK_CLIENT_SECRET!,
     }),
-
-    // Email/Password Authentication
     CredentialsProvider({
       name: "credentials",
       credentials: {
@@ -64,10 +58,15 @@ export const authOptions = {
           
           const user = userCredential.user;
           
+          // Get user role from Firestore
+          const userDoc = await getDoc(doc(db, "users", user.uid));
+          const userData = userDoc.data();
+          
           return {
             id: user.uid,
             email: user.email,
             name: user.displayName || user.email?.split('@')[0],
+            role: userData?.role || 'user',
           };
         } catch (error) {
           console.error("Authentication error:", error);
@@ -79,21 +78,36 @@ export const authOptions = {
   adapter: FirestoreAdapter({ credential }),
   callbacks: {
     async signIn({ user, account, profile }: any) {
-      console.log("Sign in attempt:", { user, account, profile });
+      // For OAuth providers, set default role if user doesn't exist
+      if (account?.provider !== 'credentials' && user?.id) {
+        try {
+          const userDoc = await getDoc(doc(db, "users", user.id));
+          if (!userDoc.exists()) {
+            // New OAuth user - set default role
+            user.role = 'user';
+          } else {
+            // Existing user - get their role
+            user.role = userDoc.data()?.role || 'user';
+          }
+        } catch (error) {
+          console.error("Error checking user role:", error);
+          user.role = 'user';
+        }
+      }
       return true;
     },
     async session({ session, user, token }: any) {
-      console.log("Session callback:", { session, user, token });
-      // Add user id to session
+      // Include role in session
       if (token?.sub) {
         session.user.id = token.sub;
+        session.user.role = token.role || 'user';
       }
       return session;
     },
     async jwt({ token, user }: any) {
-      // Add user id to token
       if (user) {
         token.sub = user.id;
+        token.role = user.role || 'user';
       }
       return token;
     }
@@ -107,6 +121,5 @@ export const authOptions = {
   debug: process.env.NODE_ENV === "development",
 };
 
-// Create and export the auth handler for App Router
 const handler = NextAuth(authOptions);
 export { handler as GET, handler as POST };

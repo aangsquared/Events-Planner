@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { signIn, getSession } from "next-auth/react"
+import { signIn } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import {
   createUserWithEmailAndPassword,
@@ -11,7 +11,6 @@ import { initializeApp, getApps } from "firebase/app"
 import { getAuth } from "firebase/auth"
 import { getFirestore, doc, setDoc } from "firebase/firestore"
 
-// Firebase config (same as in your route.ts)
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
   authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
@@ -21,7 +20,6 @@ const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 }
 
-// Initialize Firebase
 const firebaseApp =
   getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0]
 const auth = getAuth(firebaseApp)
@@ -32,6 +30,7 @@ export default function SignInPage() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [name, setName] = useState("")
+  const [role, setRole] = useState<"user" | "staff">("user")
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
   const router = useRouter()
@@ -51,21 +50,35 @@ export default function SignInPage() {
         )
         const user = userCredential.user
 
-        // Add user data to Firestore
+        // Add user data to Firestore with role
         await setDoc(doc(db, "users", user.uid), {
           name: name || email.split("@")[0],
           email: email,
+          role: role,
           createdAt: new Date().toISOString(),
           provider: "email",
         })
 
-        console.log("User created and saved to Firestore:", user.uid)
-      } else {
-        // Sign in existing user
-        await signInWithEmailAndPassword(auth, email, password)
-      }
+        console.log("User created with role:", role)
 
-      router.push("/dashboard")
+        // Redirect based on role
+        const redirectPath = role === "staff" ? "/dashboard" : "/events"
+        router.push(redirectPath)
+      } else {
+        // Sign in existing user - NextAuth will handle role retrieval
+        const result = await signIn("credentials", {
+          email,
+          password,
+          redirect: false,
+        })
+
+        if (result?.error) {
+          setError(result.error)
+        } else if (result?.ok) {
+          // Redirect will be determined by role in middleware or dashboard logic
+          router.push("/dashboard")
+        }
+      }
     } catch (error: any) {
       console.error("Auth error:", error)
       setError(error.message || "Authentication failed")
@@ -109,23 +122,51 @@ export default function SignInPage() {
         <form className="mt-8 space-y-6" onSubmit={handleEmailAuth}>
           <div className="space-y-4">
             {isSignUp && (
-              <div>
-                <label
-                  htmlFor="name"
-                  className="block text-sm font-medium text-gray-700"
-                >
-                  Full Name
-                </label>
-                <input
-                  id="name"
-                  name="name"
-                  type="text"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                  placeholder="Full name"
-                />
-              </div>
+              <>
+                <div>
+                  <label
+                    htmlFor="name"
+                    className="block text-sm font-medium text-gray-700"
+                  >
+                    Full Name
+                  </label>
+                  <input
+                    id="name"
+                    name="name"
+                    type="text"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                    placeholder="Full name"
+                  />
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="role"
+                    className="block text-sm font-medium text-gray-700"
+                  >
+                    Account Type
+                  </label>
+                  <select
+                    id="role"
+                    name="role"
+                    value={role}
+                    onChange={(e) =>
+                      setRole(e.target.value as "user" | "staff")
+                    }
+                    className="mt-1 block w-full px-3 py-2 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                  >
+                    <option value="user">Event Attendee</option>
+                    <option value="staff">Event Staff/Organizer</option>
+                  </select>
+                  <p className="mt-1 text-xs text-gray-500">
+                    {role === "staff"
+                      ? "Create and manage events"
+                      : "Browse and register for events"}
+                  </p>
+                </div>
+              </>
             )}
 
             <div>
