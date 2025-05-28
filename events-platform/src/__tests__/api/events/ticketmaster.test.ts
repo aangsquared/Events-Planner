@@ -1,8 +1,14 @@
 import { createMocks } from 'node-mocks-http';
 import { GET } from '@/app/api/events/ticketmaster/route';
+import { NextRequest } from 'next/server';
 
 // Mock fetch
 global.fetch = jest.fn();
+
+// Helper function to create NextRequest
+function createNextRequest(url: string): NextRequest {
+  return new NextRequest(new URL(url, 'http://localhost'));
+}
 
 describe('/api/events/ticketmaster', () => {
   const mockTicketmasterResponse = {
@@ -74,12 +80,8 @@ describe('/api/events/ticketmaster', () => {
       json: async () => mockTicketmasterResponse,
     });
 
-    const { req } = createMocks({
-      method: 'GET',
-      url: '/api/events/ticketmaster?city=New York&keyword=concert',
-    });
-
-    const response = await GET(req as any);
+    const request = createNextRequest('/api/events/ticketmaster?city=New York&keyword=concert');
+    const response = await GET(request);
     const data = await response.json();
 
     expect(response.status).toBe(200);
@@ -107,12 +109,8 @@ describe('/api/events/ticketmaster', () => {
       json: async () => mockTicketmasterResponse,
     });
 
-    const { req } = createMocks({
-      method: 'GET',
-      url: '/api/events/ticketmaster?page=2&size=10',
-    });
-
-    await GET(req as any);
+    const request = createNextRequest('/api/events/ticketmaster?page=2&size=10');
+    await GET(request);
 
     expect(fetch).toHaveBeenCalledWith(
       expect.stringContaining('page=2&size=10')
@@ -125,12 +123,8 @@ describe('/api/events/ticketmaster', () => {
       json: async () => mockTicketmasterResponse,
     });
 
-    const { req } = createMocks({
-      method: 'GET',
-      url: '/api/events/ticketmaster?city=Chicago&keyword=jazz&category=Music',
-    });
-
-    await GET(req as any);
+    const request = createNextRequest('/api/events/ticketmaster?city=Chicago&keyword=jazz&category=Music');
+    await GET(request);
 
     expect(fetch).toHaveBeenCalledWith(
       expect.stringContaining('city=Chicago&keyword=jazz&classificationName=Music')
@@ -140,12 +134,8 @@ describe('/api/events/ticketmaster', () => {
   it('should return error when API key is missing', async () => {
     delete process.env.TICKETMASTER_API_KEY;
 
-    const { req } = createMocks({
-      method: 'GET',
-      url: '/api/events/ticketmaster',
-    });
-
-    const response = await GET(req as any);
+    const request = createNextRequest('/api/events/ticketmaster');
+    const response = await GET(request);
     const data = await response.json();
 
     expect(response.status).toBe(500);
@@ -158,12 +148,8 @@ describe('/api/events/ticketmaster', () => {
       status: 429,
     });
 
-    const { req } = createMocks({
-      method: 'GET',
-      url: '/api/events/ticketmaster',
-    });
-
-    const response = await GET(req as any);
+    const request = createNextRequest('/api/events/ticketmaster');
+    const response = await GET(request);
     const data = await response.json();
 
     expect(response.status).toBe(500);
@@ -173,12 +159,8 @@ describe('/api/events/ticketmaster', () => {
   it('should handle network errors', async () => {
     (fetch as jest.Mock).mockRejectedValue(new Error('Network error'));
 
-    const { req } = createMocks({
-      method: 'GET',
-      url: '/api/events/ticketmaster',
-    });
-
-    const response = await GET(req as any);
+    const request = createNextRequest('/api/events/ticketmaster');
+    const response = await GET(request);
     const data = await response.json();
 
     expect(response.status).toBe(500);
@@ -198,12 +180,8 @@ describe('/api/events/ticketmaster', () => {
       }),
     });
 
-    const { req } = createMocks({
-      method: 'GET',
-      url: '/api/events/ticketmaster',
-    });
-
-    const response = await GET(req as any);
+    const request = createNextRequest('/api/events/ticketmaster');
+    const response = await GET(request);
     const data = await response.json();
 
     expect(response.status).toBe(200);
