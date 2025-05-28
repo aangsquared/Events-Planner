@@ -1,6 +1,6 @@
 import { useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
-import { useEffect } from "react"
+import { useEffect, useCallback } from "react"
 import LoadingSpinner from "../components/common/LoadingSpinner"
 
 // Extend the default User type to include role
@@ -49,15 +49,23 @@ export function withAuth<P extends object>(
     const { user, role, isLoading } = useRole()
     const router = useRouter()
 
+    const checkAccess = useCallback(() => {
+      if (!user) {
+        router.push("/auth/signin")
+        return false
+      }
+      if (requiredRole && !hasRequiredRole(role, requiredRole)) {
+        router.push("/unauthorized")
+        return false
+      }
+      return true
+    }, [user, role, router])
+
     useEffect(() => {
       if (!isLoading) {
-        if (!user) {
-          router.push("/auth/signin")
-        } else if (requiredRole && !hasRequiredRole(role, requiredRole)) {
-          router.push("/unauthorized")
-        }
+        checkAccess()
       }
-    }, [user, role, isLoading, router, requiredRole])
+    }, [isLoading, checkAccess])
 
     if (isLoading) {
       return <LoadingSpinner />
