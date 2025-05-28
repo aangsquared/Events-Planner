@@ -7,15 +7,15 @@ const TICKETMASTER_BASE_URL = 'https://app.ticketmaster.com/discovery/v2';
 function transformTicketmasterEvent(tmEvent: TicketmasterAPIEvent): TicketmasterEvent {
   const venue = tmEvent._embedded?.venues?.[0];
   const classification = tmEvent.classifications?.[0];
-  
+
   return {
     id: `tm_${tmEvent.id}`,
     name: tmEvent.name,
     description: tmEvent.info || tmEvent.pleaseNote || '',
-    startDate: tmEvent.dates.start.dateTime || 
-               `${tmEvent.dates.start.localDate}${tmEvent.dates.start.localTime ? `T${tmEvent.dates.start.localTime}` : 'T00:00:00'}`,
-    endDate: tmEvent.dates.end?.dateTime || 
-             (tmEvent.dates.end?.localDate ? `${tmEvent.dates.end.localDate}${tmEvent.dates.end.localTime ? `T${tmEvent.dates.end.localTime}` : 'T23:59:59'}` : undefined),
+    startDate: tmEvent.dates.start.dateTime ||
+      `${tmEvent.dates.start.localDate}${tmEvent.dates.start.localTime ? `T${tmEvent.dates.start.localTime}` : 'T00:00:00'}`,
+    endDate: tmEvent.dates.end?.dateTime ||
+      (tmEvent.dates.end?.localDate ? `${tmEvent.dates.end.localDate}${tmEvent.dates.end.localTime ? `T${tmEvent.dates.end.localTime}` : 'T23:59:59'}` : undefined),
     venue: {
       name: venue?.name || 'TBA',
       address: venue?.address?.line1 || '',
@@ -32,10 +32,10 @@ function transformTicketmasterEvent(tmEvent: TicketmasterAPIEvent): Ticketmaster
       max: tmEvent.priceRanges[0].max,
       currency: tmEvent.priceRanges[0].currency,
     } : undefined,
-    status: tmEvent.dates.status.code === 'onsale' ? 'active' : 
-            tmEvent.dates.status.code === 'cancelled' ? 'cancelled' : 
-            tmEvent.dates.status.code === 'postponed' ? 'postponed' : 
-            tmEvent.dates.status.code === 'rescheduled' ? 'rescheduled' : 'active',
+    status: tmEvent.dates.status.code === 'onsale' ? 'active' :
+      tmEvent.dates.status.code === 'cancelled' ? 'cancelled' :
+        tmEvent.dates.status.code === 'postponed' ? 'postponed' :
+          tmEvent.dates.status.code === 'rescheduled' ? 'rescheduled' : 'active',
     source: 'ticketmaster',
     ticketmasterData: {
       originalId: tmEvent.id,
@@ -49,8 +49,8 @@ function transformTicketmasterEvent(tmEvent: TicketmasterAPIEvent): Ticketmaster
         },
       },
       classifications: tmEvent.classifications?.map(c => ({
-        segment: c.segment.name,
-        genre: c.genre.name,
+        segment: c.segment?.name || 'Other',
+        genre: c.genre?.name || 'Other',
         subGenre: c.subGenre?.name,
       })),
     },
@@ -59,6 +59,9 @@ function transformTicketmasterEvent(tmEvent: TicketmasterAPIEvent): Ticketmaster
 }
 
 export async function GET(request: NextRequest) {
+  console.log('API Key configured:', !!TICKETMASTER_API_KEY);
+  console.log('API Key first 4 chars:', TICKETMASTER_API_KEY?.substring(0, 4));
+
   if (!TICKETMASTER_API_KEY) {
     return NextResponse.json(
       { error: 'Ticketmaster API key not configured' },
@@ -85,18 +88,25 @@ export async function GET(request: NextRequest) {
     if (city) params.append('city', city);
     if (keyword) params.append('keyword', keyword);
     if (category) params.append('classificationName', category);
-    
+
     // Only get upcoming events
-    params.append('startDateTime', new Date().toISOString());
+    const now = new Date();
+    const formattedDate = now.toISOString().split('.')[0] + 'Z';
+    params.append('startDateTime', formattedDate);
 
     const response = await fetch(`${TICKETMASTER_BASE_URL}/events.json?${params}`);
-    
+
+    console.log('Request URL:', `${TICKETMASTER_BASE_URL}/events.json?${params}`);
+    console.log('Response status:', response.status);
+
     if (!response.ok) {
+      const errorText = await response.text();
+      console.log('Error response body:', errorText);
       throw new Error(`Ticketmaster API error: ${response.status}`);
     }
 
     const data: TicketmasterAPIResponse = await response.json();
-    
+
     const events = data._embedded?.events || [];
     const transformedEvents = events.map(transformTicketmasterEvent);
 
