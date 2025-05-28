@@ -7,7 +7,7 @@ import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
 } from "firebase/auth"
-import { initializeApp, getApps, FirebaseError } from "firebase/app"
+import { initializeApp, getApps } from "firebase/app"
 import { getAuth } from "firebase/auth"
 import { getFirestore, doc, setDoc } from "firebase/firestore"
 
@@ -79,13 +79,9 @@ export default function SignInPage() {
           router.push("/dashboard")
         }
       }
-    } catch (err: unknown) {
-      console.error("Auth error:", err)
-      if (err instanceof FirebaseError) {
-        setError(err.message)
-      } else {
-        setError("Authentication failed")
-      }
+    } catch (error: any) {
+      console.error("Auth error:", error)
+      setError(error.message || "Authentication failed")
     } finally {
       setLoading(false)
     }
@@ -106,13 +102,9 @@ export default function SignInPage() {
       } else if (result?.ok) {
         router.push("/dashboard")
       }
-    } catch (err: unknown) {
-      console.error("Social sign in error:", err)
-      if (err instanceof Error) {
-        setError(err.message)
-      } else {
-        setError("Social sign in failed")
-      }
+    } catch (error: any) {
+      console.error("Social sign in error:", error)
+      setError("Social sign in failed")
     } finally {
       setLoading(false)
     }

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
-import { authOptions } from '@/app/lib/auth';
+import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import { getFirestore, collection, getDocs, addDoc, query, where, orderBy, Timestamp } from 'firebase/firestore';
 import { initializeApp, getApps } from 'firebase/app';
 import { PlatformEvent } from '@/app/types/event';
@@ -81,7 +81,7 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   const session = await getServerSession(authOptions);
-
+  
   if (!session?.user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
@@ -93,7 +93,7 @@ export async function POST(request: NextRequest) {
 
   try {
     const eventData = await request.json();
-
+    
     const newEvent = {
       name: eventData.name,
       description: eventData.description,
@@ -114,7 +114,7 @@ export async function POST(request: NextRequest) {
     };
 
     const docRef = await addDoc(collection(db, 'events'), newEvent);
-
+    
     return NextResponse.json({
       id: docRef.id,
       ...newEvent,
