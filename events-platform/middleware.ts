@@ -6,22 +6,21 @@ export default withAuth(
     const token = req.nextauth.token
     const pathname = req.nextUrl.pathname
 
-    // Redirect based on role after login
+    // Redirect staff users to their dashboard after sign-in
     if (pathname === '/dashboard' && token) {
       if (token.role === 'staff' || token.role === 'admin') {
-        return NextResponse.next()
+        return NextResponse.redirect(new URL('/staff', req.url))
       } else {
-        // Regular users can access dashboard but with limited features
+        // Regular users stay on the main dashboard
         return NextResponse.next()
       }
     }
 
     // Protect staff-only routes
-    if (pathname.startsWith('/events/create') || 
-        pathname.startsWith('/events/edit') ||
-        pathname.startsWith('/dashboard/events') ||
-        pathname.startsWith('/dashboard/registrations')) {
-      
+    if (pathname.startsWith('/staff') ||
+      pathname.startsWith('/events/create') ||
+      pathname.startsWith('/events/edit')) {
+
       if (token?.role !== 'staff' && token?.role !== 'admin') {
         return NextResponse.redirect(new URL('/unauthorized', req.url))
       }
@@ -35,9 +34,9 @@ export default withAuth(
         const pathname = req.nextUrl.pathname
 
         // Allow public routes
-        if (pathname === '/' || 
-            pathname === '/auth/signin' || 
-            pathname.startsWith('/events') && !pathname.includes('/create') && !pathname.includes('/edit')) {
+        if (pathname === '/' ||
+          pathname === '/auth/signin' ||
+          pathname.startsWith('/events') && !pathname.includes('/create') && !pathname.includes('/edit')) {
           return true
         }
 
@@ -51,6 +50,7 @@ export default withAuth(
 export const config = {
   matcher: [
     '/dashboard/:path*',
+    '/staff/:path*',
     '/events/create',
     '/events/edit/:path*',
     '/api/events/:path*'

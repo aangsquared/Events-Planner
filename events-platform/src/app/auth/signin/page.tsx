@@ -62,7 +62,7 @@ export default function SignInPage() {
         console.log("User created with role:", role)
 
         // Redirect based on role
-        const redirectPath = role === "staff" ? "/dashboard" : "/events"
+        const redirectPath = role === "staff" ? "/staff" : "/events"
         router.push(redirectPath)
       } else {
         // Sign in existing user - NextAuth will handle role retrieval
@@ -75,7 +75,7 @@ export default function SignInPage() {
         if (result?.error) {
           setError(result.error)
         } else if (result?.ok) {
-          // Redirect will be determined by role in middleware or dashboard logic
+          // Redirect will be handled by middleware
           router.push("/dashboard")
         }
       }
@@ -104,6 +104,7 @@ export default function SignInPage() {
       if (result?.error) {
         setError(result.error)
       } else if (result?.ok) {
+        // Redirect will be handled by middleware
         router.push("/dashboard")
       }
     } catch (err: unknown) {
