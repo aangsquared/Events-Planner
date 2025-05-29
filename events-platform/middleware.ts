@@ -33,9 +33,9 @@ export default withAuth(
       authorized: ({ token, req }) => {
         const pathname = req.nextUrl.pathname
 
-        // Allow public routes
+        // Allow public routes and auth-related routes
         if (pathname === '/' ||
-          pathname === '/auth/signin' ||
+          pathname.startsWith('/auth/') ||
           pathname.startsWith('/events') && !pathname.includes('/create') && !pathname.includes('/edit')) {
           return true
         }

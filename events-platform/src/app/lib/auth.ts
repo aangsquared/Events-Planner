@@ -140,9 +140,11 @@ export const authOptions: NextAuthOptions = {
     },
     pages: {
         signIn: '/auth/signin',
+        signOut: '/auth/signin',
     },
     session: {
         strategy: "jwt" as const,
     },
     debug: process.env.NODE_ENV === "development",
+    useSecureCookies: process.env.NODE_ENV === "production",
 }; 

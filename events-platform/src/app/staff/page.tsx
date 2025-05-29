@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useRole } from '@/app/hooks/useRole';
 import Link from 'next/link';
 import { format } from 'date-fns';
+import { signOut } from 'next-auth/react';
 
 interface PlatformEvent {
   id: string;
@@ -105,12 +106,23 @@ export default function StaffDashboardPage() {
                 Create and manage your events from one place
               </p>
             </div>
-            <Link
-              href="/events/create"
-              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700"
-            >
-              Create New Event
-            </Link>
+            <div className="flex items-center space-x-4">
+              <Link
+                href="/events/create"
+                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700"
+              >
+                Create New Event
+              </Link>
+              <button
+                onClick={async () => {
+                  await signOut({ redirect: false });
+                  router.push('/auth/signin');
+                }}
+                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700"
+              >
+                Sign Out
+              </button>
+            </div>
           </div>
 
           {error && (

@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useSession } from 'next-auth/react';
+import { useSession, signOut } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { format } from 'date-fns';
@@ -99,11 +99,30 @@ export default function MyEventsPage() {
     <div className="min-h-screen bg-gray-100 py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="bg-white shadow overflow-hidden sm:rounded-lg">
-          <div className="px-4 py-5 sm:px-6">
-            <h1 className="text-2xl font-semibold text-gray-900">My Events</h1>
-            <p className="mt-1 text-sm text-gray-500">
-              View and manage your event registrations
-            </p>
+          <div className="px-4 py-5 sm:px-6 flex justify-between items-center">
+            <div>
+              <h1 className="text-2xl font-semibold text-gray-900">My Events</h1>
+              <p className="mt-1 text-sm text-gray-500">
+                View and manage your event registrations
+              </p>
+            </div>
+            <div className="flex items-center space-x-4">
+              <Link
+                href="/events"
+                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700"
+              >
+                Browse Events
+              </Link>
+              <button
+                onClick={async () => {
+                  await signOut({ redirect: false });
+                  router.push('/auth/signin');
+                }}
+                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700"
+              >
+                Sign Out
+              </button>
+            </div>
           </div>
 
           {error && (
