@@ -37,7 +37,8 @@ export async function POST(request: NextRequest) {
         const existingRegistrations = query(
             collection(db, 'registrations'),
             where('userId', '==', session.user.id),
-            where('eventId', '==', eventId)
+            where('eventId', '==', eventId),
+            where('status', '==', 'registered')  // Only check for active registrations
         );
 
         const existingRegistrationsSnapshot = await getDocs(existingRegistrations);
