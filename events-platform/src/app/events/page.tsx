@@ -162,7 +162,7 @@ export default function EventsPage() {
                 value={filters.search || ""}
                 onChange={(e) => handleFilterChange("search", e.target.value)}
                 placeholder="Search events..."
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 text-gray-900 placeholder-gray-500"
               />
             </div>
 
@@ -173,7 +173,7 @@ export default function EventsPage() {
               <select
                 value={filters.category || ""}
                 onChange={(e) => handleFilterChange("category", e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 text-gray-900 bg-white"
               >
                 <option value="">All Categories</option>
                 <option value="Music">Music</option>
@@ -194,7 +194,7 @@ export default function EventsPage() {
                 value={filters.city || ""}
                 onChange={(e) => handleFilterChange("city", e.target.value)}
                 placeholder="Enter city..."
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 text-gray-900 placeholder-gray-500"
               />
             </div>
 
@@ -205,7 +205,7 @@ export default function EventsPage() {
               <select
                 value={filters.source || "all"}
                 onChange={(e) => handleFilterChange("source", e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 text-gray-900 bg-white"
               >
                 <option value="all">All Sources</option>
                 <option value="ticketmaster">Ticketmaster</option>
