@@ -46,6 +46,14 @@ export async function DELETE(
             );
         }
 
+        // Check if the registration is in a cancellable state
+        if (registrationDoc.data().status !== 'registered' && registrationDoc.data().status !== 'ended') {
+            return NextResponse.json(
+                { error: 'This registration cannot be cancelled' },
+                { status: 400 }
+            );
+        }
+
         // For platform events, we might want to update the event's available tickets
         if (registrationDoc.data().eventSource === 'platform') {
             // TODO: Update available tickets count in the event document
