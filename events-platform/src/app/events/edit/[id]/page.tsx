@@ -1,12 +1,13 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import { useRouter, useParams } from 'next/navigation';
 import { useRole } from '@/app/hooks/useRole';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { TimePicker } from '@mui/x-date-pickers/TimePicker';
 import dayjs from 'dayjs';
+import LoadingSpinner from '@/app/components/common/LoadingSpinner';
 
 interface EventFormData {
   name: string;
@@ -34,10 +35,12 @@ interface EventFormData {
   tags: string[];
 }
 
-export default function CreateEventPage() {
+export default function EditEventPage() {
   const router = useRouter();
+  const params = useParams();
   const { isStaff } = useRole();
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [formData, setFormData] = useState<EventFormData>({
     name: '',
@@ -65,27 +68,67 @@ export default function CreateEventPage() {
     tags: [],
   });
 
+  useEffect(() => {
+    const fetchEvent = async () => {
+      try {
+        const response = await fetch(`/api/events/platform/${params.id}`);
+        if (!response.ok) {
+          throw new Error('Failed to fetch event');
+        }
+        const event = await response.json();
+        
+        // Convert ISO dates to date and time strings
+        const startDate = new Date(event.startDate);
+        const endDate = new Date(event.endDate);
+        
+        setFormData({
+          ...event,
+          startDate: startDate.toISOString().split('T')[0],
+          startTime: startDate.toTimeString().slice(0, 5),
+          endDate: endDate.toISOString().split('T')[0],
+          endTime: endDate.toTimeString().slice(0, 5),
+        });
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to fetch event');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchEvent();
+  }, [params.id]);
+
   // Redirect if not staff
   if (!isStaff) {
     router.push('/unauthorized');
     return null;
   }
 
+  if (loading) {
+    return <LoadingSpinner />;
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
+    setSaving(true);
     setError('');
 
     try {
       // Combine date and time before sending to API
+      const {
+        startTime,
+        endTime,
+        ...restFormData
+      } = formData;
+
       const combinedData = {
-        ...formData,
+        ...restFormData,
         startDate: new Date(`${formData.startDate}T${formData.startTime}`).toISOString(),
         endDate: new Date(`${formData.endDate}T${formData.endTime}`).toISOString(),
       };
 
-      const response = await fetch('/api/events/platform', {
-        method: 'POST',
+      const response = await fetch(`/api/events/platform/${params.id}`, {
+        method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
@@ -94,14 +137,14 @@ export default function CreateEventPage() {
 
       if (!response.ok) {
         const data = await response.json();
-        throw new Error(data.error || 'Failed to create event');
+        throw new Error(data.error || 'Failed to update event');
       }
 
       router.push('/dashboard/events');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to create event');
+      setError(err instanceof Error ? err.message : 'Failed to update event');
     } finally {
-      setLoading(false);
+      setSaving(false);
     }
   };
 
@@ -138,9 +181,9 @@ export default function CreateEventPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="bg-white shadow overflow-hidden sm:rounded-lg">
             <div className="px-4 py-5 sm:px-6">
-              <h1 className="text-2xl font-semibold text-gray-900">Create Event</h1>
+              <h1 className="text-2xl font-semibold text-gray-900">Edit Event</h1>
               <p className="mt-1 text-sm text-gray-500">
-                Add a new event to the platform
+                Update event details
               </p>
             </div>
 
@@ -488,10 +531,10 @@ export default function CreateEventPage() {
                 </button>
                 <button
                   type="submit"
-                  disabled={loading}
+                  disabled={saving}
                   className="bg-indigo-600 py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:bg-indigo-400"
                 >
-                  {loading ? 'Creating...' : 'Create Event'}
+                  {saving ? 'Saving...' : 'Save Changes'}
                 </button>
               </div>
             </form>

@@ -22,6 +22,10 @@ interface PlatformEvent {
   registrations?: number;
   createdAt: string;
   isPublic: boolean;
+  price?: {
+    amount: number;
+    currency: string;
+  };
 }
 
 export default function StaffDashboardPage() {
@@ -159,6 +163,9 @@ export default function StaffDashboardPage() {
                       Registrations
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Price
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Visibility
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -198,6 +205,9 @@ export default function StaffDashboardPage() {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         {event.registrations || 0} / {event.capacity}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {event.price ? `${event.price.amount} ${event.price.currency}` : 'Free'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span

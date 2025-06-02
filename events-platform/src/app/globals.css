@@ -22,3 +22,37 @@
         @apply text-gray-900 bg-white;
     }
 }
+
+/* MUI TimePicker styles */
+.MuiPickersPopper-root {
+    @apply bg-white shadow-lg border border-gray-200 rounded-lg;
+}
+
+.MuiClock-clock {
+    @apply bg-white;
+}
+
+.MuiClockNumber-root {
+    @apply text-gray-900;
+}
+
+.MuiClockPointer-root {
+    @apply bg-indigo-600;
+}
+
+.MuiClockPointer-thumb {
+    @apply border-indigo-600;
+    @apply bg-indigo-600;
+}
+
+.MuiPickersToolbar-root {
+    @apply bg-indigo-600 text-white;
+}
+
+.MuiPickersToolbarText-root {
+    @apply text-white;
+}
+
+.MuiPickersToolbarButton-root {
+    @apply text-white;
+}
