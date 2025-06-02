@@ -4,9 +4,46 @@
 import { useRole } from "../hooks/useRole"
 import { signOut } from "next-auth/react"
 import Link from "next/link"
+import { useEffect, useState } from "react"
+import { format } from "date-fns"
+
+interface Registration {
+  id: string;
+  eventId: string;
+  eventName: string;
+  eventDate: string;
+  eventVenue: string;
+  registeredAt: string;
+  status: 'registered' | 'cancelled' | 'attended' | 'ended';
+}
 
 export default function Dashboard() {
   const { user, role, isStaff } = useRole()
+  const [recentActivity, setRecentActivity] = useState<Registration[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchActivity = async () => {
+      try {
+        const response = await fetch('/api/registrations/activity');
+        if (response.ok) {
+          const data = await response.json();
+          setRecentActivity(data.registrations);
+        }
+      } catch (error) {
+        console.error('Error fetching activity:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (user) {
+      fetchActivity();
+      // Refresh activity every 30 seconds
+      const intervalId = setInterval(fetchActivity, 30000);
+      return () => clearInterval(intervalId);
+    }
+  }, [user]);
 
   if (!user) {
     return <div>Please sign in to access the dashboard.</div>
@@ -225,9 +262,47 @@ export default function Dashboard() {
                 </p>
               </div>
               <div className="border-t border-gray-200">
-                <div className="px-4 py-4 text-center text-gray-500">
-                  No recent activity to display
-                </div>
+                {loading ? (
+                  <div className="px-4 py-4 text-center text-gray-500">
+                    Loading...
+                  </div>
+                ) : recentActivity.length === 0 ? (
+                  <div className="px-4 py-4 text-center text-gray-500">
+                    No recent activity to display
+                  </div>
+                ) : (
+                  <ul className="divide-y divide-gray-200">
+                    {recentActivity.map((activity) => (
+                      <li key={activity.id} className="px-4 py-4">
+                        <div className="flex items-center justify-between">
+                          <div className="flex-1">
+                            <Link
+                              href={`/events/${activity.eventId}`}
+                              className="text-sm font-medium text-indigo-600 hover:text-indigo-900"
+                            >
+                              {activity.eventName}
+                            </Link>
+                            <p className="text-sm text-gray-500">
+                              {activity.eventVenue} • {format(new Date(activity.eventDate), 'PPP')}
+                            </p>
+                          </div>
+                          <div className="ml-4 flex-shrink-0">
+                            <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full
+                              ${activity.status === 'registered' ? 'bg-green-100 text-green-800' : 
+                                activity.status === 'cancelled' ? 'bg-red-100 text-red-800' : 
+                                activity.status === 'ended' ? 'bg-gray-100 text-gray-800' :
+                                'bg-yellow-100 text-yellow-800'}`}>
+                              {activity.status.charAt(0).toUpperCase() + activity.status.slice(1)}
+                            </span>
+                          </div>
+                        </div>
+                        <p className="mt-1 text-xs text-gray-500">
+                          Registered on {format(new Date(activity.registeredAt), 'PP')}
+                        </p>
+                      </li>
+                    ))}
+                  </ul>
+                )}
               </div>
             </div>
           </div>
