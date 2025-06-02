@@ -90,6 +90,7 @@ export async function POST(request: NextRequest) {
             eventId: eventId,
             eventName: eventData.name,
             eventDate: eventData.startDate,
+            eventEndDate: eventData.endDate || eventData.startDate, // Use startDate as fallback if no endDate
             eventVenue: eventData.venue.name,
             eventSource: eventId.startsWith('tm_') ? 'ticketmaster' : 'platform',
             registeredAt: new Date().toISOString(),

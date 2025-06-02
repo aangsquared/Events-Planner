@@ -10,10 +10,11 @@ interface Registration {
     eventId: string;
     eventName: string;
     eventDate: string;
+    eventEndDate?: string;
     eventVenue: string;
     eventSource: 'platform' | 'ticketmaster';
     registeredAt: string;
-    status: 'registered' | 'cancelled' | 'attended';
+    status: 'registered' | 'cancelled' | 'attended' | 'ended';
     ticketCount: number;
     ticketUrl?: string;
     userId: string;
@@ -59,6 +60,19 @@ export async function GET(request: NextRequest) {
         // Filter to only show the user's registrations
         const userRegistrations = registrations
             .filter(reg => reg.userId === session.user.id && reg.status === 'registered')
+            .map(reg => {
+                const now = new Date();
+                const eventEndDate = reg.eventEndDate ? new Date(reg.eventEndDate) : new Date(reg.eventDate);
+
+                // Set the end date to the end of the day (23:59:59)
+                eventEndDate.setHours(23, 59, 59, 999);
+
+                // If the event has ended (current time is past the end of the event day)
+                if (now > eventEndDate) {
+                    return { ...reg, status: 'ended' };
+                }
+                return reg;
+            })
             .sort((a, b) => {
                 const dateA = new Date(a.eventDate).getTime();
                 const dateB = new Date(b.eventDate).getTime();
