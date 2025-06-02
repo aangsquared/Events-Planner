@@ -16,8 +16,7 @@ export interface BaseEvent {
   images: string[];
   category: string;
   price?: {
-    min: number;
-    max: number;
+    amount: number;
     currency: string;
   };
   capacity?: number;

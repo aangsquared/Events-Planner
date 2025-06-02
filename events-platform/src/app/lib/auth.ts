@@ -7,9 +7,9 @@ import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
 import { initializeApp, getApps } from "firebase/app";
 import { getFirestore, doc, getDoc } from "firebase/firestore";
 import type { NextAuthOptions, User } from "next-auth";
-import type { Session, Account } from "next-auth";
+import type { Session, Account, Profile } from "next-auth";
 import type { JWT } from "next-auth/jwt";
-import type { AdapterUser } from "@auth/core/adapters";
+import type { Adapter } from "next-auth/adapters";
 
 
 // Firebase config
@@ -103,7 +103,7 @@ export const authOptions: NextAuthOptions = {
     ],
     adapter: FirestoreAdapter({ credential }),
     callbacks: {
-        async signIn({ user, account }: { user: User | AdapterUser; account: Account | null }) {
+        async signIn({ user, account }: { user: User; account: Account | null }) {
             // For OAuth providers, set default role if user doesn't exist
             if (account?.provider !== 'credentials' && user?.id) {
                 try {
@@ -125,15 +125,38 @@ export const authOptions: NextAuthOptions = {
         async session({ session, token }: { session: Session; token: ExtendedJWT }): Promise<CustomSession> {
             const customSession = session as CustomSession;
             if (token?.sub) {
-                customSession.user.id = token.sub;
-                customSession.user.role = token.role || 'user';
+                customSession.user = {
+                    ...customSession.user,
+                    id: token.sub,
+                    role: token.role || 'user',
+                    email: token.email as string | null,
+                    name: token.name as string | null,
+                    image: token.picture as string | null,
+                };
             }
             return customSession;
         },
-        async jwt({ token, user }: { token: JWT; user?: ExtendedUser }): Promise<ExtendedJWT> {
+        async jwt({ token, user, account, trigger }: {
+            token: JWT;
+            user?: User;
+            account: Account | null;
+            trigger?: "signIn" | "signUp" | "update";
+        }): Promise<ExtendedJWT> {
             if (user) {
                 token.sub = user.id;
-                token.role = user.role || 'user';
+                token.role = (user as ExtendedUser).role || 'user';
+
+                // If this is a credentials sign-in, fetch the user's role from Firestore
+                if (account?.provider === 'credentials' && user.id) {
+                    try {
+                        const userDoc = await getDoc(doc(db, "users", user.id));
+                        if (userDoc.exists()) {
+                            token.role = userDoc.data()?.role || 'user';
+                        }
+                    } catch (error) {
+                        console.error("Error fetching user role:", error);
+                    }
+                }
             }
             return token as ExtendedJWT;
         }
