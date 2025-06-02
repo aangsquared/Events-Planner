@@ -95,8 +95,7 @@ export async function POST(request: NextRequest) {
             registeredAt: new Date().toISOString(),
             status: 'registered',
             ticketCount: 1,
-            // Store ticketmaster URL if it's a Ticketmaster event
-            ticketUrl: eventId.startsWith('tm_') ? eventData.ticketmasterData?.url : undefined,
+            ...(eventId.startsWith('tm_') ? { ticketUrl: eventData.ticketmasterData?.url } : {}),
         };
 
         const registrationRef = await addDoc(collection(db, 'registrations'), registration);
