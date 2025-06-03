@@ -42,15 +42,28 @@ export default function ViewRegistrationsPage() {
   useEffect(() => {
     const fetchRegistrations = async () => {
       try {
+        console.log('Fetching registrations...');
         const response = await fetch('/api/registrations/staff');
+        
         if (!response.ok) {
+          console.error('API response not ok:', response.status, response.statusText);
           throw new Error('Failed to fetch registrations');
         }
+
         const data = await response.json();
+        console.log('Received data:', {
+          eventsCount: data.events?.length || 0,
+          events: data.events?.map((e: Event) => ({
+            id: e.id,
+            name: e.name,
+            registrationsCount: e.registrations?.length || 0
+          }))
+        });
+
         setEvents(data.events);
       } catch (err) {
+        console.error('Error in fetchRegistrations:', err);
         setError('Failed to load registrations');
-        console.error('Error fetching registrations:', err);
       } finally {
         setLoading(false);
       }
@@ -65,6 +78,16 @@ export default function ViewRegistrationsPage() {
     : events
         .find(event => event.id === selectedEvent)
         ?.registrations.map(reg => ({ ...reg, eventName: events.find(e => e.id === selectedEvent)?.name || '', eventDate: events.find(e => e.id === selectedEvent)?.startDate || '' })) || [];
+
+  console.log('Filtered registrations:', {
+    selectedEvent,
+    registrationsCount: registrations.length,
+    registrations: registrations.map(r => ({
+      id: r.id,
+      eventName: r.eventName,
+      userName: r.userName
+    }))
+  });
 
   if (loading) {
     return (
@@ -111,10 +134,14 @@ export default function ViewRegistrationsPage() {
           )}
 
           <div className="px-4 py-3 border-b border-gray-200">
+            <label htmlFor="eventFilter" className="block text-sm font-medium text-gray-700 mb-2">
+              Filter by Event
+            </label>
             <select
+              id="eventFilter"
               value={selectedEvent}
               onChange={(e) => setSelectedEvent(e.target.value)}
-              className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 text-gray-900 bg-white"
             >
               <option value="all">All Events</option>
               {events.map((event) => (
