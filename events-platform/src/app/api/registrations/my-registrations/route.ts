@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/app/lib/auth';
-import { getFirestore, collection, getDocs } from 'firebase/firestore';
+import { getFirestore, collection, query, where, getDocs } from 'firebase/firestore';
 import { FirebaseError } from 'firebase/app';
 import { initializeApp, getApps } from 'firebase/app';
 
@@ -45,9 +45,17 @@ export async function GET(request: NextRequest) {
 
     try {
         console.log('Attempting to fetch registrations from Firestore');
-        // Get all registrations and filter in memory
-        const registrationsSnapshot = await getDocs(collection(db, 'registrations'));
-        console.log('Registrations fetched, count:', registrationsSnapshot.size);
+
+        // Create a query to only fetch the user's registrations
+        const registrationsRef = collection(db, 'registrations');
+        const userRegistrationsQuery = query(
+            registrationsRef,
+            where('userId', '==', session.user.id),
+            where('status', '==', 'registered')
+        );
+
+        const registrationsSnapshot = await getDocs(userRegistrationsQuery);
+        console.log('User registrations fetched, count:', registrationsSnapshot.size);
 
         const registrations = registrationsSnapshot.docs
             .map(doc => ({
@@ -55,19 +63,13 @@ export async function GET(request: NextRequest) {
                 ...doc.data()
             })) as Registration[];
 
-        console.log('Total registrations:', registrations.length);
-
-        // Filter to only show the user's registrations
-        const userRegistrations = registrations
-            .filter(reg => reg.userId === session.user.id && reg.status === 'registered')
+        // Process the registrations to update status for ended events
+        const processedRegistrations = registrations
             .map(reg => {
                 const now = new Date();
                 const eventEndDate = reg.eventEndDate ? new Date(reg.eventEndDate) : new Date(reg.eventDate);
-
-                // Set the end date to the end of the day (23:59:59)
                 eventEndDate.setHours(23, 59, 59, 999);
 
-                // If the event has ended (current time is past the end of the event day)
                 if (now > eventEndDate) {
                     return { ...reg, status: 'ended' };
                 }
@@ -79,9 +81,9 @@ export async function GET(request: NextRequest) {
                 return dateA - dateB;
             });
 
-        console.log('User registrations found:', userRegistrations.length);
+        console.log('Processed registrations count:', processedRegistrations.length);
 
-        return NextResponse.json({ registrations: userRegistrations });
+        return NextResponse.json({ registrations: processedRegistrations });
     } catch (error) {
         const fbError = error as FirebaseError;
         console.error('Detailed error in fetching registrations:', {
