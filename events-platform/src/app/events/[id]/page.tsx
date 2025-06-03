@@ -7,6 +7,7 @@ import { Event } from '@/app/types/event';
 import { useSession } from 'next-auth/react';
 import { format } from 'date-fns';
 import Link from 'next/link';
+import AddToCalendarButton from '@/app/components/AddToCalendarButton';
 
 export default function EventDetailsPage() {
   const params = useParams();
@@ -205,9 +206,7 @@ export default function EventDetailsPage() {
                       Price
                     </h2>
                     <p className="text-gray-600">
-                      {event.price.min === event.price.max
-                        ? `${event.price.currency} ${event.price.min}`
-                        : `${event.price.currency} ${event.price.min} - ${event.price.max}`}
+                      {event.price.currency} {event.price.amount}
                     </p>
                   </div>
                 )}
@@ -302,15 +301,31 @@ export default function EventDetailsPage() {
                   >
                     {registering ? 'Adding to My Events...' : 'Add to My Events'}
                   </button>
+                  <AddToCalendarButton
+                    eventName={event.name}
+                    startTime={event.startDate}
+                    endTime={event.endDate || event.startDate}
+                    location={`${event.venue.name}, ${event.venue.address}, ${event.venue.city}, ${event.venue.state}, ${event.venue.country}`}
+                    description={event.description}
+                  />
                 </>
               ) : (
-                <button
-                  onClick={handleSignUp}
-                  disabled={registering}
-                  className="w-full sm:w-auto inline-flex justify-center items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:bg-indigo-400"
-                >
-                  {registering ? 'Signing Up...' : 'Sign Up for Event'}
-                </button>
+                <>
+                  <button
+                    onClick={handleSignUp}
+                    disabled={registering}
+                    className="w-full sm:w-auto inline-flex justify-center items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:bg-indigo-400"
+                  >
+                    {registering ? 'Signing Up...' : 'Sign Up for Event'}
+                  </button>
+                  <AddToCalendarButton
+                    eventName={event.name}
+                    startTime={event.startDate}
+                    endTime={event.endDate || event.startDate}
+                    location={`${event.venue.name}, ${event.venue.address}, ${event.venue.city}, ${event.venue.state}, ${event.venue.country}`}
+                    description={event.description}
+                  />
+                </>
               )}
             </div>
           </div>
