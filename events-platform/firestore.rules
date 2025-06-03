@@ -29,8 +29,13 @@ service cloud.firestore {
 
     // Registrations collection rules
     match /registrations/{registrationId} {
-      // Allow read if authenticated
-      allow read: if isAuthenticated();
+      // Allow read if:
+      // 1. User is authenticated and it's their registration, or
+      // 2. User is staff
+      allow read: if isAuthenticated() && (
+        resource.data.userId == request.auth.uid ||
+        isStaff()
+      );
       
       // Allow create if authenticated and setting their own userId
       allow create: if isAuthenticated() && 
