@@ -7,6 +7,7 @@ import Link from "next/link"
 import Image from "next/image"
 import ErrorBoundary from "@/app/components/ErrorBoundary"
 import { getEventImage } from "@/app/utils/imageUtils"
+import DashboardHeader from "@/app/components/DashboardHeader"
 
 interface EventsResponse {
   events: Event[]
@@ -117,37 +118,10 @@ export default function EventsPage() {
   return (
     <ErrorBoundary>
       <div className="min-h-screen bg-gray-50">
-        {/* Header */}
-        <header className="bg-white shadow">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-between items-center py-6">
-              <div>
-                <h1 className="text-3xl font-bold text-gray-900">Events</h1>
-                <p className="text-gray-600">
-                  Discover events from Ticketmaster and our platform
-                </p>
-              </div>
-              <div className="flex space-x-4">
-                {user && (
-                  <Link
-                    href="/dashboard"
-                    className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-md text-sm font-medium"
-                  >
-                    Dashboard
-                  </Link>
-                )}
-                {isStaff && (
-                  <Link
-                    href="/events/create"
-                    className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md text-sm font-medium"
-                  >
-                    Create Event
-                  </Link>
-                )}
-              </div>
-            </div>
-          </div>
-        </header>
+        <DashboardHeader 
+          title="Events" 
+          subtitle="Discover events from Ticketmaster and our platform" 
+        />
 
         <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
           {/* Filters */}

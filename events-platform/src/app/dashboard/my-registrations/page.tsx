@@ -12,41 +12,29 @@ interface Registration {
   eventId: string;
   eventName: string;
   eventDate: string;
-  userEmail: string;
-  userName: string;
+  eventEndDate?: string;
+  eventVenue: string;
+  eventSource: 'platform' | 'ticketmaster';
   registeredAt: string;
   status: 'registered' | 'cancelled' | 'attended' | 'ended';
   ticketCount: number;
+  ticketUrl?: string;
 }
 
-interface Event {
-  id: string;
-  name: string;
-  startDate: string;
-  registrations: Registration[];
-}
-
-export default function ViewRegistrationsPage() {
+export default function MyRegistrationsPage() {
   const router = useRouter();
-  const { isStaff, isLoading: roleLoading } = useRole();
-  const [events, setEvents] = useState<Event[]>([]);
+  const { user, isLoading: roleLoading } = useRole();
+  const [registrations, setRegistrations] = useState<Registration[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [selectedEvent, setSelectedEvent] = useState<string>('all');
 
   useEffect(() => {
-    // Only redirect if role loading is complete and user is not staff
-    if (!roleLoading && !isStaff) {
-      router.push('/unauthorized');
-      return;
-    }
-
-    // Only fetch data if user is staff
-    if (!roleLoading && isStaff) {
+    // Only fetch data if user is logged in
+    if (!roleLoading && user) {
       const fetchRegistrations = async () => {
         try {
-          console.log('Fetching registrations...');
-          const response = await fetch('/api/registrations/staff');
+          console.log('Fetching my registrations...');
+          const response = await fetch('/api/registrations/my-registrations');
           
           if (!response.ok) {
             const errorData = await response.json().catch(() => ({}));
@@ -55,16 +43,11 @@ export default function ViewRegistrationsPage() {
           }
 
           const data = await response.json();
-          console.log('Received data:', {
-            eventsCount: data.events?.length || 0,
-            events: data.events?.map((e: Event) => ({
-              id: e.id,
-              name: e.name,
-              registrationsCount: e.registrations?.length || 0
-            }))
+          console.log('Received registrations:', {
+            count: data.registrations?.length || 0,
           });
 
-          setEvents(data.events || []);
+          setRegistrations(data.registrations || []);
         } catch (err) {
           console.error('Error in fetchRegistrations:', err);
           setError(err instanceof Error ? err.message : 'Failed to load registrations');
@@ -75,13 +58,13 @@ export default function ViewRegistrationsPage() {
 
       fetchRegistrations();
     }
-  }, [isStaff, roleLoading, router]);
+  }, [user, roleLoading]);
 
   // Show loading state while checking role
   if (roleLoading) {
     return (
       <div className="min-h-screen bg-gray-100">
-        <DashboardHeader title="View Registrations" subtitle="Loading..." />
+        <DashboardHeader title="My Registrations" subtitle="Loading..." />
         <div className="py-8">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="animate-pulse space-y-4">
@@ -98,32 +81,16 @@ export default function ViewRegistrationsPage() {
     );
   }
 
-  // Don't render anything if not staff (will be redirected)
-  if (!isStaff) {
+  // Redirect if not logged in
+  if (!roleLoading && !user) {
+    router.push('/auth/signin');
     return null;
   }
-
-  // Get all registrations for the selected event or all events
-  const registrations = selectedEvent === 'all'
-    ? events.flatMap(event => event.registrations.map(reg => ({ ...reg, eventName: event.name, eventDate: event.startDate })))
-    : events
-        .find(event => event.id === selectedEvent)
-        ?.registrations.map(reg => ({ ...reg, eventName: events.find(e => e.id === selectedEvent)?.name || '', eventDate: events.find(e => e.id === selectedEvent)?.startDate || '' })) || [];
-
-  console.log('Filtered registrations:', {
-    selectedEvent,
-    registrationsCount: registrations.length,
-    registrations: registrations.map(r => ({
-      id: r.id,
-      eventName: r.eventName,
-      userName: r.userName
-    }))
-  });
 
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-100">
-        <DashboardHeader title="View Registrations" subtitle="Loading..." />
+        <DashboardHeader title="My Registrations" subtitle="Loading..." />
         <div className="py-8">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="animate-pulse space-y-4">
@@ -143,8 +110,8 @@ export default function ViewRegistrationsPage() {
   return (
     <div className="min-h-screen bg-gray-100">
       <DashboardHeader 
-        title="View Registrations" 
-        subtitle="Manage event registrations and attendees" 
+        title="My Registrations" 
+        subtitle="View your event registrations" 
       />
       <div className="py-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -155,28 +122,15 @@ export default function ViewRegistrationsPage() {
               </div>
             )}
 
-            <div className="px-4 py-3 border-b border-gray-200">
-              <label htmlFor="eventFilter" className="block text-sm font-medium text-gray-700 mb-2">
-                Filter by Event
-              </label>
-              <select
-                id="eventFilter"
-                value={selectedEvent}
-                onChange={(e) => setSelectedEvent(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 text-gray-900 bg-white"
-              >
-                <option value="all">All Events</option>
-                {events.map((event) => (
-                  <option key={event.id} value={event.id}>
-                    {event.name} ({format(new Date(event.startDate), 'PP')})
-                  </option>
-                ))}
-              </select>
-            </div>
-
             {registrations.length === 0 ? (
               <div className="px-4 py-5 sm:p-6 text-center">
-                <p className="text-gray-500">No registrations found for {selectedEvent === 'all' ? 'any events' : 'this event'}.</p>
+                <p className="text-gray-500">You haven't registered for any events yet.</p>
+                <Link
+                  href="/events"
+                  className="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700"
+                >
+                  Browse Events
+                </Link>
               </div>
             ) : (
               <div className="overflow-x-auto">
@@ -184,13 +138,10 @@ export default function ViewRegistrationsPage() {
                   <thead className="bg-gray-50">
                     <tr>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Attendee
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Event
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Registration Date
+                        Date & Venue
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Status
@@ -198,39 +149,63 @@ export default function ViewRegistrationsPage() {
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Tickets
                       </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Actions
+                      </th>
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
                     {registrations.map((registration) => (
                       <tr key={registration.id}>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm font-medium text-gray-900">{registration.userName}</div>
-                          <div className="text-sm text-gray-500">{registration.userEmail}</div>
+                          <div className="text-sm font-medium text-gray-900">{registration.eventName}</div>
+                          <div className="text-sm text-gray-500">
+                            Registered on {format(new Date(registration.registeredAt), 'PP')}
+                          </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="text-sm text-gray-900">
-                            <Link href={`/events/${registration.eventId}`} className="text-indigo-600 hover:text-indigo-900">
-                              {registration.eventName}
-                            </Link>
+                            {format(new Date(registration.eventDate), 'PPp')}
                           </div>
                           <div className="text-sm text-gray-500">
-                            {format(new Date(registration.eventDate), 'PPP')}
+                            {registration.eventVenue}
                           </div>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {format(new Date(registration.registeredAt), 'PPp')}
-                        </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full
-                            ${registration.status === 'registered' ? 'bg-green-100 text-green-800' : 
-                              registration.status === 'cancelled' ? 'bg-red-100 text-red-800' : 
-                              registration.status === 'ended' ? 'bg-gray-100 text-gray-800' :
-                              'bg-yellow-100 text-yellow-800'}`}>
+                          <span
+                            className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                              registration.status === 'registered'
+                                ? 'bg-green-100 text-green-800'
+                                : registration.status === 'cancelled'
+                                ? 'bg-red-100 text-red-800'
+                                : registration.status === 'ended'
+                                ? 'bg-gray-100 text-gray-800'
+                                : 'bg-yellow-100 text-yellow-800'
+                            }`}
+                          >
                             {registration.status.charAt(0).toUpperCase() + registration.status.slice(1)}
                           </span>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                           {registration.ticketCount}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                          <Link
+                            href={`/events/${registration.eventId}`}
+                            className="text-indigo-600 hover:text-indigo-900 mr-4"
+                          >
+                            View Event
+                          </Link>
+                          {registration.ticketUrl && (
+                            <a
+                              href={registration.ticketUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-indigo-600 hover:text-indigo-900"
+                            >
+                              View Ticket
+                            </a>
+                          )}
                         </td>
                       </tr>
                     ))}
