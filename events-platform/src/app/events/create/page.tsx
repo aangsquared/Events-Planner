@@ -8,6 +8,40 @@ import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { TimePicker } from '@mui/x-date-pickers/TimePicker';
 import dayjs from 'dayjs';
 import DashboardHeader from '@/app/components/DashboardHeader';
+import Image from 'next/image';
+
+const categoryImages = {
+  'Music': [
+    { url: '/images/events/music-concert.png', alt: 'Concert crowd at night' },
+    { url: '/images/events/music-festival.png', alt: 'Music festival stage' },
+    { url: '/images/events/music-classical.png', alt: 'Classical orchestra' }
+  ],
+  'Sports': [
+    { url: '/images/events/sports-stadium.png', alt: 'Sports stadium' },
+    { url: '/images/events/sports-field.png', alt: 'Sports field' },
+    { url: '/images/events/sports-court.png', alt: 'Indoor sports court' }
+  ],
+  'Arts & Theatre': [
+    { url: '/images/events/theatre-stage.png', alt: 'Theatre stage' },
+    { url: '/images/events/art-gallery.png', alt: 'Art gallery' },
+    { url: '/images/events/theatre-seats.png', alt: 'Theatre seats' }
+  ],
+  'Comedy': [
+    { url: '/images/events/comedy-mic.png', alt: 'Comedy microphone' },
+    { url: '/images/events/comedy-stage.png', alt: 'Comedy club stage' },
+    { url: '/images/events/comedy-crowd.png', alt: 'Comedy show audience' }
+  ],
+  'Family': [
+    { url: '/images/events/family-park.png', alt: 'Family park event' },
+    { url: '/images/events/family-carnival.png', alt: 'Family carnival' },
+    { url: '/images/events/family-show.png', alt: 'Family show' }
+  ],
+  'Miscellaneous': [
+    { url: '/images/events/misc-conference.png', alt: 'Conference hall' },
+    { url: '/images/events/misc-workshop.png', alt: 'Workshop space' },
+    { url: '/images/events/misc-venue.png', alt: 'General venue' }
+  ]
+};
 
 interface EventFormData {
   name: string;
@@ -33,6 +67,7 @@ interface EventFormData {
   images: string[];
   isPublic: boolean;
   tags: string[];
+  coverImage?: string;
 }
 
 interface ValidationErrors {
@@ -69,6 +104,7 @@ export default function CreateEventPage() {
     images: [],
     isPublic: true,
     tags: [],
+    coverImage: '',
   });
 
   // Redirect if not staff
@@ -136,6 +172,10 @@ export default function CreateEventPage() {
       errors.capacity = 'Capacity must be greater than 0';
     }
 
+    if (!formData.coverImage && formData.category) {
+      errors.coverImage = 'Please select a cover image for your event';
+    }
+
     return errors;
   };
 
@@ -163,6 +203,8 @@ export default function CreateEventPage() {
         ...formData,
         startDate: new Date(`${formData.startDate}T${formData.startTime}`).toISOString(),
         endDate: new Date(`${formData.endDate}T${formData.endTime}`).toISOString(),
+        // Ensure cover image is first in the images array
+        images: formData.coverImage ? [formData.coverImage] : [],
       };
 
       const response = await fetch('/api/events/platform', {
@@ -210,6 +252,14 @@ export default function CreateEventPage() {
     setFormData(prev => ({
       ...prev,
       tags,
+    }));
+  };
+
+  const handleCoverImageSelect = (imageUrl: string) => {
+    setFormData(prev => ({
+      ...prev,
+      coverImage: imageUrl,
+      images: [imageUrl]
     }));
   };
 
@@ -529,6 +579,45 @@ export default function CreateEventPage() {
                         <p className="mt-1 text-sm text-red-500">{validationErrors.category}</p>
                       )}
                     </div>
+
+                    {formData.category && (
+                      <div className="space-y-4">
+                        <label className="block text-sm font-medium text-gray-700">
+                          Cover Image <span className="text-red-500">*</span>
+                        </label>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                          {categoryImages[formData.category as keyof typeof categoryImages]?.map((image, index) => (
+                            <div
+                              key={index}
+                              className={`relative cursor-pointer rounded-lg overflow-hidden ${
+                                formData.coverImage === image.url ? 'ring-2 ring-indigo-500' : ''
+                              }`}
+                              onClick={() => handleCoverImageSelect(image.url)}
+                            >
+                              <div className="aspect-w-16 aspect-h-9 relative h-48">
+                                <Image
+                                  src={image.url}
+                                  alt={image.alt}
+                                  fill
+                                  className="object-cover"
+                                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                                />
+                              </div>
+                              {formData.coverImage === image.url && (
+                                <div className="absolute inset-0 bg-indigo-500 bg-opacity-20 flex items-center justify-center">
+                                  <svg className="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                  </svg>
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                        {validationErrors.coverImage && (
+                          <p className="mt-1 text-sm text-red-500">{validationErrors.coverImage}</p>
+                        )}
+                      </div>
+                    )}
 
                     <div>
                       <label htmlFor="capacity" className="block text-sm font-medium text-gray-700">
