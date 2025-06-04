@@ -37,7 +37,7 @@ export default function ViewRegistrationsPage() {
   useEffect(() => {
     // Only redirect if role loading is complete and user is not staff
     if (!roleLoading && !isStaff) {
-      router.push('/unauthorized');
+      router.push('/unauthorised');
       return;
     }
 

@@ -32,7 +32,7 @@ export default class ErrorBoundary extends Component<Props, State> {
               <div className="text-center">
                 <h3 className="text-lg font-medium text-gray-900">Something went wrong</h3>
                 <p className="mt-2 text-sm text-gray-500">
-                  Please try refreshing the page or contact support if the problem persists.
+                  Please try refreshing the page or sign in again if the problem persists.
                 </p>
                 <button
                   onClick={() => this.setState({ hasError: false })}

@@ -35,11 +35,16 @@ interface EventFormData {
   tags: string[];
 }
 
+interface ValidationErrors {
+  [key: string]: string;
+}
+
 export default function CreateEventPage() {
   const router = useRouter();
   const { isStaff } = useRole();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [validationErrors, setValidationErrors] = useState<ValidationErrors>({});
   const [formData, setFormData] = useState<EventFormData>({
     name: '',
     description: '',
@@ -68,14 +73,89 @@ export default function CreateEventPage() {
 
   // Redirect if not staff
   if (!isStaff) {
-    router.push('/unauthorized');
+    router.push('/unauthorised');
     return null;
   }
+
+  const validateForm = () => {
+    const errors: ValidationErrors = {};
+    
+    if (!formData.name.trim()) {
+      errors.name = 'Event name is required';
+    }
+    
+    if (!formData.description.trim()) {
+      errors.description = 'Description is required';
+    }
+    
+    if (!formData.startDate) {
+      errors.startDate = 'Start date is required';
+    }
+    
+    if (!formData.startTime) {
+      errors.startTime = 'Start time is required';
+    }
+    
+    if (!formData.endDate) {
+      errors.endDate = 'End date is required';
+    }
+    
+    if (!formData.endTime) {
+      errors.endTime = 'End time is required';
+    }
+    
+    if (!formData.venue.name.trim()) {
+      errors['venue.name'] = 'Venue name is required';
+    }
+    
+    if (!formData.venue.address.trim()) {
+      errors['venue.address'] = 'Address is required';
+    }
+    
+    if (!formData.venue.city.trim()) {
+      errors['venue.city'] = 'City is required';
+    }
+    
+    if (!formData.venue.state.trim()) {
+      errors['venue.state'] = 'State is required';
+    }
+    
+    if (!formData.venue.country.trim()) {
+      errors['venue.country'] = 'Country is required';
+    }
+    
+    if (!formData.venue.postalCode.trim()) {
+      errors['venue.postalCode'] = 'Postal code is required';
+    }
+    
+    if (!formData.category) {
+      errors.category = 'Category is required';
+    }
+    
+    if (formData.capacity <= 0) {
+      errors.capacity = 'Capacity must be greater than 0';
+    }
+
+    return errors;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError('');
+    setValidationErrors({});
+
+    const errors = validateForm();
+    if (Object.keys(errors).length > 0) {
+      setValidationErrors(errors);
+      setLoading(false);
+      // Scroll to the first error
+      const firstErrorField = document.querySelector('[data-error="true"]');
+      if (firstErrorField) {
+        firstErrorField.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+      return;
+    }
 
     try {
       // Combine date and time before sending to API
@@ -164,7 +244,7 @@ export default function CreateEventPage() {
                     
                     <div>
                       <label htmlFor="name" className="block text-sm font-medium text-gray-700">
-                        Event Name
+                        Event Name <span className="text-red-500">*</span>
                       </label>
                       <input
                         type="text"
@@ -173,13 +253,17 @@ export default function CreateEventPage() {
                         required
                         value={formData.name}
                         onChange={handleInputChange}
-                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 placeholder-gray-500"
+                        data-error={!!validationErrors.name}
+                        className={`mt-1 block w-full border ${validationErrors.name ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 placeholder-gray-500`}
                       />
+                      {validationErrors.name && (
+                        <p className="mt-1 text-sm text-red-500">{validationErrors.name}</p>
+                      )}
                     </div>
 
                     <div>
                       <label htmlFor="description" className="block text-sm font-medium text-gray-700">
-                        Description
+                        Description <span className="text-red-500">*</span>
                       </label>
                       <textarea
                         name="description"
@@ -188,15 +272,19 @@ export default function CreateEventPage() {
                         rows={4}
                         value={formData.description}
                         onChange={handleInputChange}
-                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 placeholder-gray-500"
+                        data-error={!!validationErrors.description}
+                        className={`mt-1 block w-full border ${validationErrors.description ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 placeholder-gray-500`}
                       />
+                      {validationErrors.description && (
+                        <p className="mt-1 text-sm text-red-500">{validationErrors.description}</p>
+                      )}
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="space-y-4">
+                    <div className="space-y-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                           <label htmlFor="startDate" className="block text-sm font-medium text-gray-700">
-                            Start Date
+                            Start Date <span className="text-red-500">*</span>
                           </label>
                           <input
                             type="date"
@@ -205,12 +293,38 @@ export default function CreateEventPage() {
                             required
                             value={formData.startDate}
                             onChange={handleInputChange}
-                            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-gray-900"
+                            data-error={!!validationErrors.startDate}
+                            className={`mt-1 block w-full border ${validationErrors.startDate ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-gray-900`}
                           />
+                          {validationErrors.startDate && (
+                            <p className="mt-1 text-sm text-red-500">{validationErrors.startDate}</p>
+                          )}
                         </div>
+                        
+                        <div>
+                          <label htmlFor="endDate" className="block text-sm font-medium text-gray-700">
+                            End Date <span className="text-red-500">*</span>
+                          </label>
+                          <input
+                            type="date"
+                            name="endDate"
+                            id="endDate"
+                            required
+                            value={formData.endDate}
+                            onChange={handleInputChange}
+                            data-error={!!validationErrors.endDate}
+                            className={`mt-1 block w-full border ${validationErrors.endDate ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-gray-900`}
+                          />
+                          {validationErrors.endDate && (
+                            <p className="mt-1 text-sm text-red-500">{validationErrors.endDate}</p>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                           <label htmlFor="startTime" className="block text-sm font-medium text-gray-700">
-                            Start Time
+                            Start Time <span className="text-red-500">*</span>
                           </label>
                           <TimePicker
                             value={formData.startTime ? dayjs(`2000-01-01T${formData.startTime}`) : null}
@@ -225,32 +339,20 @@ export default function CreateEventPage() {
                             slotProps={{
                               textField: {
                                 fullWidth: true,
-                                className: "mt-1",
+                                className: `mt-1`,
+                                error: !!validationErrors.startTime
                               }
                             }}
                             ampm={false}
                           />
+                          {validationErrors.startTime && (
+                            <p className="mt-1 text-sm text-red-500">{validationErrors.startTime}</p>
+                          )}
                         </div>
-                      </div>
 
-                      <div className="space-y-4">
-                        <div>
-                          <label htmlFor="endDate" className="block text-sm font-medium text-gray-700">
-                            End Date
-                          </label>
-                          <input
-                            type="date"
-                            name="endDate"
-                            id="endDate"
-                            required
-                            value={formData.endDate}
-                            onChange={handleInputChange}
-                            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-gray-900"
-                          />
-                        </div>
                         <div>
                           <label htmlFor="endTime" className="block text-sm font-medium text-gray-700">
-                            End Time
+                            End Time <span className="text-red-500">*</span>
                           </label>
                           <TimePicker
                             value={formData.endTime ? dayjs(`2000-01-01T${formData.endTime}`) : null}
@@ -265,11 +367,15 @@ export default function CreateEventPage() {
                             slotProps={{
                               textField: {
                                 fullWidth: true,
-                                className: "mt-1",
+                                className: `mt-1`,
+                                error: !!validationErrors.endTime
                               }
                             }}
                             ampm={false}
                           />
+                          {validationErrors.endTime && (
+                            <p className="mt-1 text-sm text-red-500">{validationErrors.endTime}</p>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -281,7 +387,7 @@ export default function CreateEventPage() {
                     
                     <div>
                       <label htmlFor="venue.name" className="block text-sm font-medium text-gray-700">
-                        Venue Name
+                        Venue Name <span className="text-red-500">*</span>
                       </label>
                       <input
                         type="text"
@@ -290,13 +396,17 @@ export default function CreateEventPage() {
                         required
                         value={formData.venue.name}
                         onChange={handleInputChange}
-                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 placeholder-gray-500"
+                        data-error={!!validationErrors['venue.name']}
+                        className={`mt-1 block w-full border ${validationErrors['venue.name'] ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 placeholder-gray-500`}
                       />
+                      {validationErrors['venue.name'] && (
+                        <p className="mt-1 text-sm text-red-500">{validationErrors['venue.name']}</p>
+                      )}
                     </div>
 
                     <div>
                       <label htmlFor="venue.address" className="block text-sm font-medium text-gray-700">
-                        Address
+                        Address <span className="text-red-500">*</span>
                       </label>
                       <input
                         type="text"
@@ -305,72 +415,88 @@ export default function CreateEventPage() {
                         required
                         value={formData.venue.address}
                         onChange={handleInputChange}
-                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 placeholder-gray-500"
+                        data-error={!!validationErrors['venue.address']}
+                        className={`mt-1 block w-full border ${validationErrors['venue.address'] ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 placeholder-gray-500`}
                       />
+                      {validationErrors['venue.address'] && (
+                        <p className="mt-1 text-sm text-red-500">{validationErrors['venue.address']}</p>
+                      )}
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label htmlFor="venue.city" className="block text-sm font-medium text-gray-700">
-                          City
-                        </label>
-                        <input
-                          type="text"
-                          name="venue.city"
-                          id="venue.city"
-                          required
-                          value={formData.venue.city}
-                          onChange={handleInputChange}
-                          className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 placeholder-gray-500"
-                        />
-                      </div>
-
-                      <div>
-                        <label htmlFor="venue.state" className="block text-sm font-medium text-gray-700">
-                          State/Province
-                        </label>
-                        <input
-                          type="text"
-                          name="venue.state"
-                          id="venue.state"
-                          required
-                          value={formData.venue.state}
-                          onChange={handleInputChange}
-                          className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 placeholder-gray-500"
-                        />
-                      </div>
+                    <div>
+                      <label htmlFor="venue.city" className="block text-sm font-medium text-gray-700">
+                        City <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        name="venue.city"
+                        id="venue.city"
+                        required
+                        value={formData.venue.city}
+                        onChange={handleInputChange}
+                        data-error={!!validationErrors['venue.city']}
+                        className={`mt-1 block w-full border ${validationErrors['venue.city'] ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 placeholder-gray-500`}
+                      />
+                      {validationErrors['venue.city'] && (
+                        <p className="mt-1 text-sm text-red-500">{validationErrors['venue.city']}</p>
+                      )}
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label htmlFor="venue.country" className="block text-sm font-medium text-gray-700">
-                          Country
-                        </label>
-                        <input
-                          type="text"
-                          name="venue.country"
-                          id="venue.country"
-                          required
-                          value={formData.venue.country}
-                          onChange={handleInputChange}
-                          className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 placeholder-gray-500"
-                        />
-                      </div>
+                    <div>
+                      <label htmlFor="venue.state" className="block text-sm font-medium text-gray-700">
+                        State/Province <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        name="venue.state"
+                        id="venue.state"
+                        required
+                        value={formData.venue.state}
+                        onChange={handleInputChange}
+                        data-error={!!validationErrors['venue.state']}
+                        className={`mt-1 block w-full border ${validationErrors['venue.state'] ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 placeholder-gray-500`}
+                      />
+                      {validationErrors['venue.state'] && (
+                        <p className="mt-1 text-sm text-red-500">{validationErrors['venue.state']}</p>
+                      )}
+                    </div>
 
-                      <div>
-                        <label htmlFor="venue.postalCode" className="block text-sm font-medium text-gray-700">
-                          Postal Code
-                        </label>
-                        <input
-                          type="text"
-                          name="venue.postalCode"
-                          id="venue.postalCode"
-                          required
-                          value={formData.venue.postalCode}
-                          onChange={handleInputChange}
-                          className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 placeholder-gray-500"
-                        />
-                      </div>
+                    <div>
+                      <label htmlFor="venue.country" className="block text-sm font-medium text-gray-700">
+                        Country <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        name="venue.country"
+                        id="venue.country"
+                        required
+                        value={formData.venue.country}
+                        onChange={handleInputChange}
+                        data-error={!!validationErrors['venue.country']}
+                        className={`mt-1 block w-full border ${validationErrors['venue.country'] ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 placeholder-gray-500`}
+                      />
+                      {validationErrors['venue.country'] && (
+                        <p className="mt-1 text-sm text-red-500">{validationErrors['venue.country']}</p>
+                      )}
+                    </div>
+
+                    <div>
+                      <label htmlFor="venue.postalCode" className="block text-sm font-medium text-gray-700">
+                        Postal Code <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        name="venue.postalCode"
+                        id="venue.postalCode"
+                        required
+                        value={formData.venue.postalCode}
+                        onChange={handleInputChange}
+                        data-error={!!validationErrors['venue.postalCode']}
+                        className={`mt-1 block w-full border ${validationErrors['venue.postalCode'] ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 placeholder-gray-500`}
+                      />
+                      {validationErrors['venue.postalCode'] && (
+                        <p className="mt-1 text-sm text-red-500">{validationErrors['venue.postalCode']}</p>
+                      )}
                     </div>
                   </div>
 
@@ -380,7 +506,7 @@ export default function CreateEventPage() {
 
                     <div>
                       <label htmlFor="category" className="block text-sm font-medium text-gray-700">
-                        Category
+                        Category <span className="text-red-500">*</span>
                       </label>
                       <select
                         name="category"
@@ -388,7 +514,8 @@ export default function CreateEventPage() {
                         required
                         value={formData.category}
                         onChange={handleInputChange}
-                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 placeholder-gray-500"
+                        data-error={!!validationErrors.category}
+                        className={`mt-1 block w-full border ${validationErrors.category ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 placeholder-gray-500`}
                       >
                         <option value="">Select a category</option>
                         <option value="Music">Music</option>
@@ -398,48 +525,14 @@ export default function CreateEventPage() {
                         <option value="Family">Family</option>
                         <option value="Miscellaneous">Miscellaneous</option>
                       </select>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label htmlFor="price.amount" className="block text-sm font-medium text-gray-700">
-                          Price
-                        </label>
-                        <input
-                          type="number"
-                          name="price.amount"
-                          id="price.amount"
-                          required
-                          min="0"
-                          step="0.01"
-                          value={formData.price.amount}
-                          onChange={handleInputChange}
-                          className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 placeholder-gray-500"
-                        />
-                      </div>
-
-                      <div>
-                        <label htmlFor="price.currency" className="block text-sm font-medium text-gray-700">
-                          Currency
-                        </label>
-                        <select
-                          name="price.currency"
-                          id="price.currency"
-                          required
-                          value={formData.price.currency}
-                          onChange={handleInputChange}
-                          className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 placeholder-gray-500"
-                        >
-                          <option value="USD">USD</option>
-                          <option value="EUR">EUR</option>
-                          <option value="GBP">GBP</option>
-                        </select>
-                      </div>
+                      {validationErrors.category && (
+                        <p className="mt-1 text-sm text-red-500">{validationErrors.category}</p>
+                      )}
                     </div>
 
                     <div>
                       <label htmlFor="capacity" className="block text-sm font-medium text-gray-700">
-                        Capacity
+                        Capacity <span className="text-red-500">*</span>
                       </label>
                       <input
                         type="number"
@@ -449,8 +542,12 @@ export default function CreateEventPage() {
                         min="1"
                         value={formData.capacity}
                         onChange={handleInputChange}
-                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 placeholder-gray-500"
+                        data-error={!!validationErrors.capacity}
+                        className={`mt-1 block w-full border ${validationErrors.capacity ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 placeholder-gray-500`}
                       />
+                      {validationErrors.capacity && (
+                        <p className="mt-1 text-sm text-red-500">{validationErrors.capacity}</p>
+                      )}
                     </div>
 
                     <div>

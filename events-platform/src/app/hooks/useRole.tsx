@@ -46,12 +46,12 @@ export function withAuth<P extends object>(
   requiredRole?: "user" | "staff" | "admin"
 ) {
   return function AuthComponent(props: P) {
-    const { user, role, isLoading } = useRole()
+    const { user, role, isLoading, isAuthenticated } = useRole()
     const router = useRouter()
 
     const checkAccess = useCallback(() => {
-      if (!user) {
-        router.push("/auth/signin")
+      if (!user || !role || !isAuthenticated) {
+        router.push("/unauthorised")
         return false
       }
       if (requiredRole && !hasRequiredRole(role, requiredRole)) {
@@ -59,7 +59,7 @@ export function withAuth<P extends object>(
         return false
       }
       return true
-    }, [user, role, router])
+    }, [user, role, router, isAuthenticated])
 
     useEffect(() => {
       if (!isLoading) {
