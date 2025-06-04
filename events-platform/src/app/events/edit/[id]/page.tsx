@@ -100,7 +100,7 @@ export default function EditEventPage() {
 
   // Redirect if not staff
   if (!isStaff) {
-    router.push('/unauthorized');
+    router.push('/unauthorised');
     return null;
   }
 

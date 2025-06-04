@@ -28,8 +28,7 @@ function transformTicketmasterEvent(tmEvent: TicketmasterAPIEvent): Ticketmaster
         images: tmEvent.images?.map(img => img.url) || [],
         category: classification?.genre?.name || classification?.segment?.name || 'Entertainment',
         price: tmEvent.priceRanges?.[0] ? {
-            min: tmEvent.priceRanges[0].min,
-            max: tmEvent.priceRanges[0].max,
+            amount: tmEvent.priceRanges[0].min,
             currency: tmEvent.priceRanges[0].currency,
         } : undefined,
         status: tmEvent.dates.status.code === 'onsale' ? 'active' :
