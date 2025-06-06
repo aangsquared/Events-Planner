@@ -180,12 +180,14 @@ export default function StaffEventsPage() {
                             </span>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                            <Link
-                              href={`/staff/events/${event.id}`}
-                              className="text-indigo-600 hover:text-indigo-900 mr-4"
-                            >
-                              View
-                            </Link>
+                            {event.isPublic && (
+                              <Link
+                                href={`/events/${event.id}`}
+                                className="text-indigo-600 hover:text-indigo-900 mr-4"
+                              >
+                                View
+                              </Link>
+                            )}
                             <Link
                               href={`/staff/events/edit/${event.id}`}
                               className="text-indigo-600 hover:text-indigo-900 mr-4"
@@ -272,12 +274,14 @@ export default function StaffEventsPage() {
 
                         {/* Actions */}
                         <div className="flex space-x-4 pt-2 border-t border-gray-100">
-                          <Link
-                            href={`/staff/events/${event.id}`}
-                            className="flex-1 text-center py-2 px-3 text-sm font-medium text-indigo-600 bg-indigo-50 rounded-md hover:bg-indigo-100"
-                          >
-                            View
-                          </Link>
+                          {event.isPublic && (
+                            <Link
+                              href={`/events/${event.id}`}
+                              className="flex-1 text-center py-2 px-3 text-sm font-medium text-indigo-600 bg-indigo-50 rounded-md hover:bg-indigo-100"
+                            >
+                              View
+                            </Link>
+                          )}
                           <Link
                             href={`/staff/events/edit/${event.id}`}
                             className="flex-1 text-center py-2 px-3 text-sm font-medium text-indigo-600 bg-indigo-50 rounded-md hover:bg-indigo-100"
