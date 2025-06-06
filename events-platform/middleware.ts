@@ -19,11 +19,6 @@ export default withAuth(
       return NextResponse.redirect(new URL('/auth/signin', req.url))
     }
 
-    // Redirect staff users to their dashboard after sign-in
-    if (pathname === '/dashboard' && token.role === 'staff') {
-      return NextResponse.redirect(new URL('/staff/dashboard', req.url))
-    }
-
     // Protect staff-only routes
     if (pathname.startsWith('/staff') ||
       pathname.includes('/events/staff')) {
@@ -52,8 +47,6 @@ export const config = {
   matcher: [
     '/dashboard/:path*',
     '/staff/:path*',
-    '/events/create',
-    '/events/edit/:path*',
     '/api/events/:path*'
   ]
 }

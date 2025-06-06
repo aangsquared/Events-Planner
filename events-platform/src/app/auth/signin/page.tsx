@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { signIn } from "next-auth/react"
+import { signIn, getSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import {
   createUserWithEmailAndPassword,
@@ -9,7 +9,17 @@ import {
 } from "firebase/auth"
 import { initializeApp, getApps, FirebaseError } from "firebase/app"
 import { getAuth } from "firebase/auth"
-import { getFirestore, doc, setDoc } from "firebase/firestore"
+import { getFirestore, doc, setDoc, getDoc } from "firebase/firestore"
+
+// Extend the default User type to include role
+declare module "next-auth" {
+  interface User {
+    role?: string
+  }
+  interface Session {
+    user: User
+  }
+}
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -70,7 +80,7 @@ export default function SignInPage() {
         console.log("User created with role:", role)
 
         // Redirect based on role
-        const redirectPath = role === "staff" ? "/staff" : "/events"
+        const redirectPath = role === "staff" ? "/staff/dashboard" : "/dashboard"
         router.push(redirectPath)
       } else {
         // Sign in existing user - NextAuth will handle role retrieval
@@ -83,8 +93,13 @@ export default function SignInPage() {
         if (result?.error) {
           setError(result.error)
         } else if (result?.ok) {
-          // Redirect will be handled by middleware
-          router.push("/dashboard")
+          // Get the user's session to check their role
+          const session = await getSession()
+          if (session?.user?.role === "staff") {
+            router.push("/staff/dashboard")
+          } else {
+            router.push("/dashboard")
+          }
         }
       }
     } catch (err: unknown) {
@@ -106,14 +121,18 @@ export default function SignInPage() {
     try {
       const result = await signIn(provider, {
         redirect: false,
-        callbackUrl: "/dashboard",
       })
 
       if (result?.error) {
         setError(result.error)
       } else if (result?.ok) {
-        // Redirect will be handled by middleware
-        router.push("/dashboard")
+        // Get the user's session to check their role
+        const session = await getSession()
+        if (session?.user?.role === "staff") {
+          router.push("/staff/dashboard")
+        } else {
+          router.push("/dashboard")
+        }
       }
     } catch (err: unknown) {
       console.error("Social sign in error:", err)
