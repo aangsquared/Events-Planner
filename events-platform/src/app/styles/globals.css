@@ -24,3 +24,9 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* Force light mode for auth pages */
+body:has([data-auth-page]) {
+  background: #f9fafb !important;
+  color: #171717 !important;
+}
