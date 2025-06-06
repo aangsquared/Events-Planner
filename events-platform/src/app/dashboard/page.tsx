@@ -79,7 +79,7 @@ export default function Dashboard() {
             // Staff Dashboard
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {/* Create Event Card */}
-              <Link href="/events/create" className="block">
+              <Link href="/staff/events/create" className="block">
                 <div className="bg-white overflow-hidden shadow rounded-lg hover:shadow-md transition-shadow">
                   <div className="p-6">
                     <div className="flex items-center">

@@ -115,8 +115,8 @@ export default function StaffEventsPage() {
                 </p>
               </div>
               <Link
-                href="/events/create"
-                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700"
+                href="/staff/events/create"
+                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
               >
                 Create New Event
               </Link>
@@ -132,7 +132,7 @@ export default function StaffEventsPage() {
               <div className="px-4 py-5 sm:p-6 text-center">
                 <p className="text-gray-500">You haven't created any events yet.</p>
                 <Link
-                  href="/events/create"
+                  href="/staff/events/create"
                   className="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700"
                 >
                   Create Your First Event
@@ -215,7 +215,7 @@ export default function StaffEventsPage() {
                             View
                           </Link>
                           <Link
-                            href={`/events/edit/${event.id}`}
+                            href={`/staff/events/edit/${event.id}`}
                             className="text-indigo-600 hover:text-indigo-900 mr-4"
                           >
                             Edit
