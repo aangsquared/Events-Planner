@@ -6,6 +6,7 @@ import { signOut } from "next-auth/react"
 import Link from "next/link"
 import { useEffect, useState } from "react"
 import { format } from "date-fns"
+import LoadingSpinner from "../components/common/LoadingSpinner"
 
 interface Registration {
   id: string;
@@ -257,8 +258,11 @@ export default function Dashboard() {
               </div>
               <div className="border-t border-gray-200">
                 {loading ? (
-                  <div className="px-4 py-4 text-center text-gray-500">
-                    Loading...
+                  <div className="px-4 py-8 flex items-center justify-center">
+                    <div className="text-center">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mx-auto"></div>
+                      <p className="mt-2 text-sm text-gray-500">Loading activity...</p>
+                    </div>
                   </div>
                 ) : recentActivity.length === 0 ? (
                   <div className="px-4 py-4 text-center text-gray-500">

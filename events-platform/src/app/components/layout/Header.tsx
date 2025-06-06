@@ -100,7 +100,7 @@ const UserDropdown = ({
 
       {isOpen && (
         <div 
-          className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg py-1 z-[60]"
+          className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg py-1 z-[110]"
           role="menu"
         >
           <Link
@@ -205,6 +205,11 @@ export default function Header() {
   const pathname = usePathname();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
+  // Close mobile menu on route change
+  useEffect(() => {
+    setIsMobileMenuOpen(false);
+  }, [pathname]);
+
   // Don't render header on auth pages
   if (pathname?.startsWith('/auth/')) {
     return null;
@@ -224,24 +229,28 @@ export default function Header() {
       ];
 
   return (
-    <header className="bg-white border-b h-16 fixed top-0 left-0 right-0 z-40">
-      <div className="max-w-7xl mx-auto px-4 h-full flex items-center justify-between">
+    <header className="bg-white border-b h-16 fixed top-0 left-0 right-0 w-full z-[100] shadow-sm">
+      <div className="w-full h-full flex items-center justify-between px-4 sm:px-6 lg:px-8 max-w-none lg:max-w-7xl lg:mx-auto min-w-0">
         {/* Mobile menu button */}
-        <button
-          className="md:hidden p-2 rounded-lg text-gray-500 hover:bg-gray-50"
-          onClick={() => setIsMobileMenuOpen(true)}
-          aria-label="Open menu"
-        >
-          <Menu size={24} />
-        </button>
+        <div className="flex items-center md:hidden flex-shrink-0">
+          <button
+            className="p-2 rounded-lg text-gray-500 hover:bg-gray-50 flex-shrink-0"
+            onClick={() => setIsMobileMenuOpen(true)}
+            aria-label="Open menu"
+          >
+            <Menu size={24} />
+          </button>
+        </div>
 
-        {/* Logo */}
-        <Link href={isStaff ? '/staff/dashboard' : '/dashboard'} className="flex-shrink-0">
-          <span className="text-xl font-bold text-gray-900">Events Planner</span>
-        </Link>
+        {/* Logo - Always centered on mobile, left-aligned on desktop */}
+        <div className="flex-1 flex justify-center md:justify-start md:flex-none min-w-0">
+          <Link href={isStaff ? '/staff/dashboard' : '/dashboard'} className="flex-shrink-0">
+            <span className="text-xl font-bold text-gray-900 truncate">Events Planner</span>
+          </Link>
+        </div>
 
         {/* Desktop Navigation */}
-        <nav className="hidden md:flex items-center space-x-1">
+        <nav className="hidden md:flex items-center space-x-1 flex-1 justify-center">
           {navItems.map((item) => (
             <NavButton
               key={item.href}
@@ -253,8 +262,10 @@ export default function Header() {
           ))}
         </nav>
 
-        {/* User Menu */}
-        <UserDropdown user={user} isStaff={isStaff} />
+        {/* User Menu - Always visible */}
+        <div className="flex-shrink-0">
+          <UserDropdown user={user} isStaff={isStaff} />
+        </div>
 
         {/* Mobile Menu */}
         <MobileMenu
