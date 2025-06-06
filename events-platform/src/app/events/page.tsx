@@ -246,73 +246,75 @@ export default function EventsPage() {
               {events.map((event) => (
                 <div key={event.id} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
                   {/* Event Image */}
-                  <div className="h-48 bg-gray-200 relative">
-                    {event.images.length > 0 ? (
-                      <div className="relative h-full">
-                        <Image
-                          src={getEventImage(event.images)}
-                          alt={event.name}
-                          fill
-                          className="object-cover"
-                          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                          onError={(e) => {
-                            const img = e.target as HTMLImageElement;
-                            img.src = '/images/event-placeholder.jpg';
-                            img.onerror = null;
-                          }}
-                        />
-                      </div>
-                    ) : (
-                      <div className="flex items-center justify-center h-full">
-                        <svg
-                          className="h-12 w-12 text-gray-400"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                  <Link href={`/events/${event.id}`} className="block">
+                    <div className="h-48 bg-gray-200 relative cursor-pointer">
+                      {event.images.length > 0 ? (
+                        <div className="relative h-full">
+                          <Image
+                            src={getEventImage(event.images)}
+                            alt={event.name}
+                            fill
+                            className="object-cover hover:scale-105 transition-transform duration-300"
+                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                            onError={(e) => {
+                              const img = e.target as HTMLImageElement;
+                              img.src = '/images/event-placeholder.jpg';
+                              img.onerror = null;
+                            }}
                           />
-                        </svg>
-                      </div>
-                    )}
+                        </div>
+                      ) : (
+                        <div className="flex items-center justify-center h-full">
+                          <svg
+                            className="h-12 w-12 text-gray-400"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                            />
+                          </svg>
+                        </div>
+                      )}
 
-                    {/* Source Badge */}
-                    <div className="absolute top-2 right-2">
-                      <span
-                        className={`px-2 py-1 text-xs font-medium rounded-full ${
-                          event.source === "ticketmaster"
-                            ? "bg-blue-100 text-blue-800"
-                            : "bg-green-100 text-green-800"
-                        }`}
-                      >
-                        {event.source === "ticketmaster"
-                          ? "Ticketmaster"
-                          : "Platform"}
-                      </span>
-                    </div>
-
-                    {/* Status Badge */}
-                    {event.status !== "active" && (
-                      <div className="absolute top-2 left-2">
+                      {/* Source Badge */}
+                      <div className="absolute top-2 right-2">
                         <span
                           className={`px-2 py-1 text-xs font-medium rounded-full ${
-                            event.status === "cancelled"
-                              ? "bg-red-100 text-red-800"
-                              : event.status === "postponed"
-                              ? "bg-yellow-100 text-yellow-800"
-                              : "bg-orange-100 text-orange-800"
+                            event.source === "ticketmaster"
+                              ? "bg-blue-100 text-blue-800"
+                              : "bg-green-100 text-green-800"
                           }`}
                         >
-                          {event.status.charAt(0).toUpperCase() +
-                            event.status.slice(1)}
+                          {event.source === "ticketmaster"
+                            ? "Ticketmaster"
+                            : "Platform"}
                         </span>
                       </div>
-                    )}
-                  </div>
+
+                      {/* Status Badge */}
+                      {event.status !== "active" && (
+                        <div className="absolute top-2 left-2">
+                          <span
+                            className={`px-2 py-1 text-xs font-medium rounded-full ${
+                              event.status === "cancelled"
+                                ? "bg-red-100 text-red-800"
+                                : event.status === "postponed"
+                                ? "bg-yellow-100 text-yellow-800"
+                                : "bg-orange-100 text-orange-800"
+                            }`}
+                          >
+                            {event.status.charAt(0).toUpperCase() +
+                              event.status.slice(1)}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  </Link>
 
                   {/* Event Details */}
                   <div className="p-6">
@@ -371,14 +373,12 @@ export default function EventsPage() {
 
                       <div className="flex space-x-2">
                         {event.source === "ticketmaster" ? (
-                          <a
-                            href={event.ticketmasterData.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
+                          <Link
+                            href={`/events/${event.id}`}
                             className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm font-medium"
                           >
-                            Buy Tickets
-                          </a>
+                            View Details
+                          </Link>
                         ) : (
                           <Link
                             href={`/events/${event.id}`}
