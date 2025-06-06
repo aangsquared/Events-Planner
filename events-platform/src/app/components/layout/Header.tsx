@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
@@ -54,9 +54,27 @@ const UserDropdown = ({
   isStaff: boolean;
 }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+
+    if (isOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isOpen]);
 
   return (
-    <div className="relative">
+    <div className="relative" ref={dropdownRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="flex items-center space-x-2 px-3 py-2 rounded-lg hover:bg-gray-50"
@@ -76,13 +94,13 @@ const UserDropdown = ({
             <User size={20} className="text-gray-500" />
           )}
         </div>
-        <span className="text-sm font-medium text-gray-700">{user?.name || 'User'}</span>
+        <span className="text-sm font-medium text-gray-700 hidden sm:inline">{user?.name || 'User'}</span>
         <ChevronDown size={16} className="text-gray-400" />
       </button>
 
       {isOpen && (
         <div 
-          className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg py-1 z-50"
+          className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg py-1 z-[60]"
           role="menu"
         >
           <Link
@@ -130,18 +148,27 @@ const MobileMenu = ({
       ]
     : [
         { href: '/dashboard', icon: Home, label: 'Dashboard' },
-        { href: '/events/browse', icon: Calendar, label: 'Browse Events' },
-        { href: '/registrations', icon: Ticket, label: 'My Registrations' },
+        { href: '/events', icon: Calendar, label: 'Browse Events' },
+        { href: '/dashboard/my-registrations', icon: Ticket, label: 'My Registrations' },
       ];
 
   return (
-    <div
-      className={`fixed inset-0 z-50 transform transition-transform duration-300 ease-in-out ${
-        isOpen ? 'translate-x-0' : '-translate-x-full'
-      }`}
-    >
-      <div className="absolute inset-0 bg-black bg-opacity-50" onClick={onClose} />
-      <nav className="relative w-64 max-w-sm bg-white h-full shadow-xl flex flex-col">
+    <>
+      {/* Invisible overlay for click-outside-to-close functionality */}
+      {isOpen && (
+        <div 
+          className="fixed inset-0 z-[45]" 
+          onClick={onClose}
+          aria-hidden="true"
+        />
+      )}
+      
+      {/* Slide-out navigation menu */}
+      <nav 
+        className={`fixed top-0 left-0 w-64 max-w-sm bg-white h-full shadow-xl flex flex-col z-[50] transform transition-transform duration-300 ease-in-out ${
+          isOpen ? 'translate-x-0' : '-translate-x-full'
+        }`}
+      >
         <div className="p-4 border-b">
           <button
             onClick={onClose}
@@ -169,7 +196,7 @@ const MobileMenu = ({
           ))}
         </div>
       </nav>
-    </div>
+    </>
   );
 };
 
@@ -193,7 +220,7 @@ export default function Header() {
     : [
         { href: '/dashboard', icon: Home, label: 'Dashboard' },
         { href: '/events', icon: Calendar, label: 'Browse Events' },
-        { href: '/dashboard/registrations', icon: Ticket, label: 'My Registrations' },
+        { href: '/dashboard/my-registrations', icon: Ticket, label: 'My Registrations' },
       ];
 
   return (
