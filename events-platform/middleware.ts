@@ -6,23 +6,36 @@ export default withAuth(
     const token = req.nextauth.token
     const pathname = req.nextUrl.pathname
 
+    // Allow public routes
+    if (pathname === '/' ||
+      pathname.startsWith('/auth/') ||
+      pathname === '/events' ||
+      (pathname.startsWith('/events/') && !pathname.includes('/staff'))) {
+      return NextResponse.next()
+    }
+
+    // Require authentication for all other routes
+    if (!token) {
+      return NextResponse.redirect(new URL('/auth/signin', req.url))
+    }
+
     // Redirect staff users to their dashboard after sign-in
-    if (pathname === '/dashboard' && token) {
-      if (token.role === 'staff' || token.role === 'admin') {
-        return NextResponse.redirect(new URL('/staff', req.url))
-      } else {
-        // Regular users stay on the main dashboard
-        return NextResponse.next()
-      }
+    if (pathname === '/dashboard' && token.role === 'staff') {
+      return NextResponse.redirect(new URL('/staff/dashboard', req.url))
     }
 
     // Protect staff-only routes
     if (pathname.startsWith('/staff') ||
-      pathname.startsWith('/events/create') ||
-      pathname.startsWith('/events/edit')) {
+      pathname.includes('/events/staff')) {
+      if (token.role !== 'staff' && token.role !== 'admin') {
+        return NextResponse.redirect(new URL('/unauthorised', req.url))
+      }
+    }
 
-      if (token?.role !== 'staff' && token?.role !== 'admin') {
-        return NextResponse.redirect(new URL('/unauthorized', req.url))
+    // Protect user-only routes
+    if (pathname.startsWith('/dashboard')) {
+      if (token.role === 'staff' || token.role === 'admin') {
+        return NextResponse.redirect(new URL('/staff/dashboard', req.url))
       }
     }
 
@@ -30,19 +43,7 @@ export default withAuth(
   },
   {
     callbacks: {
-      authorized: ({ token, req }) => {
-        const pathname = req.nextUrl.pathname
-
-        // Allow public routes and auth-related routes
-        if (pathname === '/' ||
-          pathname.startsWith('/auth/') ||
-          pathname.startsWith('/events') && !pathname.includes('/create') && !pathname.includes('/edit')) {
-          return true
-        }
-
-        // Require authentication for protected routes
-        return !!token
-      },
+      authorized: ({ token }) => !!token,
     },
   }
 )

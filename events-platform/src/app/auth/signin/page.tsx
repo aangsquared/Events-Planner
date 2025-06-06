@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { signIn } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import {
@@ -34,6 +34,14 @@ export default function SignInPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
   const router = useRouter()
+
+  // Ensure light background for auth page
+  useEffect(() => {
+    document.body.style.backgroundColor = '#f9fafb'
+    return () => {
+      document.body.style.backgroundColor = ''
+    }
+  }, [])
 
   const handleEmailAuth = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -120,7 +128,7 @@ export default function SignInPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div data-auth-page className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8 !bg-gray-50">
       <div className="max-w-md w-full space-y-8">
         <div>
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
