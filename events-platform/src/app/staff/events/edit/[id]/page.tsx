@@ -140,7 +140,7 @@ export default function EditEventPage() {
   }
 
   if (loading) {
-    return <LoadingSpinner />;
+    return <LoadingSpinner text="Loading event data..." />;
   }
 
   const handleSubmit = async (e: React.FormEvent) => {

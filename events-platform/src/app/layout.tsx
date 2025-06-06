@@ -27,11 +27,11 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased overflow-x-hidden`}
       >
         <AuthProvider>
           <Header />
-          <main className="[&:not(:has([data-auth-page]))]:pt-16">
+          <main className="[&:not(:has([data-auth-page]))]:pt-16 overflow-x-hidden">
             {children}
           </main>
         </AuthProvider>

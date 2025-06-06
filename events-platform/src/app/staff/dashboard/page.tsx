@@ -5,6 +5,7 @@ import { useRole } from '../../hooks/useRole';
 import Link from 'next/link';
 import { format } from 'date-fns';
 import { PlusCircle, CalendarDays, Users, Clock } from 'lucide-react';
+import LoadingSpinner from '../../components/common/LoadingSpinner';
 
 interface EventSummary {
   totalEvents: number;
@@ -53,7 +54,7 @@ export default function StaffDashboard() {
   }
 
   if (loading) {
-    return <div>Loading dashboard...</div>;
+    return <LoadingSpinner text="Loading dashboard..." />;
   }
 
   return (

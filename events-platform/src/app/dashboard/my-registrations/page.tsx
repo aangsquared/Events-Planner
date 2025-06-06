@@ -6,6 +6,7 @@ import { useRole } from '@/app/hooks/useRole';
 import Link from 'next/link';
 import { format } from 'date-fns';
 import DashboardHeader from '@/app/components/DashboardHeader';
+import LoadingSpinner from '@/app/components/common/LoadingSpinner';
 
 interface Registration {
   id: string;
@@ -62,23 +63,7 @@ export default function MyRegistrationsPage() {
 
   // Show loading state while checking role
   if (roleLoading) {
-    return (
-      <div className="min-h-screen bg-gray-100">
-        <DashboardHeader title="My Registrations" subtitle="Loading..." />
-        <div className="py-8">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="animate-pulse space-y-4">
-              <div className="h-4 bg-gray-200 rounded w-1/4"></div>
-              <div className="space-y-3">
-                <div className="h-4 bg-gray-200 rounded"></div>
-                <div className="h-4 bg-gray-200 rounded"></div>
-                <div className="h-4 bg-gray-200 rounded"></div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
+    return <LoadingSpinner text="Loading..." />;
   }
 
   // Redirect if not logged in
@@ -88,23 +73,7 @@ export default function MyRegistrationsPage() {
   }
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-100">
-        <DashboardHeader title="My Registrations" subtitle="Loading..." />
-        <div className="py-8">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="animate-pulse space-y-4">
-              <div className="h-4 bg-gray-200 rounded w-1/4"></div>
-              <div className="space-y-3">
-                <div className="h-4 bg-gray-200 rounded"></div>
-                <div className="h-4 bg-gray-200 rounded"></div>
-                <div className="h-4 bg-gray-200 rounded"></div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
+    return <LoadingSpinner text="Loading registrations..." />;
   }
 
   return (
