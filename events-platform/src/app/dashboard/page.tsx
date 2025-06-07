@@ -140,7 +140,7 @@ export default function Dashboard() {
               </Link>
 
               {/* View Registrations Card */}
-              <Link href="/dashboard/registrations" className="block">
+              <Link href="/staff/registrations" className="block">
                 <div className="bg-white overflow-hidden shadow rounded-lg hover:shadow-md transition-shadow">
                   <div className="p-6">
                     <div className="flex items-center">

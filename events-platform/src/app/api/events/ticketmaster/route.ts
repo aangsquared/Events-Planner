@@ -28,8 +28,7 @@ function transformTicketmasterEvent(tmEvent: TicketmasterAPIEvent): Ticketmaster
     images: tmEvent.images?.map(img => img.url) || [],
     category: classification?.genre?.name || classification?.segment?.name || 'Entertainment',
     price: tmEvent.priceRanges?.[0] ? {
-      min: tmEvent.priceRanges[0].min,
-      max: tmEvent.priceRanges[0].max,
+      amount: tmEvent.priceRanges[0].min,
       currency: tmEvent.priceRanges[0].currency,
     } : undefined,
     status: tmEvent.dates.status.code === 'onsale' ? 'active' :
@@ -59,9 +58,6 @@ function transformTicketmasterEvent(tmEvent: TicketmasterAPIEvent): Ticketmaster
 }
 
 export async function GET(request: NextRequest) {
-  console.log('API Key configured:', !!TICKETMASTER_API_KEY);
-  console.log('API Key first 4 chars:', TICKETMASTER_API_KEY?.substring(0, 4));
-
   if (!TICKETMASTER_API_KEY) {
     return NextResponse.json(
       { error: 'Ticketmaster API key not configured' },
@@ -96,12 +92,8 @@ export async function GET(request: NextRequest) {
 
     const response = await fetch(`${TICKETMASTER_BASE_URL}/events.json?${params}`);
 
-    console.log('Request URL:', `${TICKETMASTER_BASE_URL}/events.json?${params}`);
-    console.log('Response status:', response.status);
-
     if (!response.ok) {
       const errorText = await response.text();
-      console.log('Error response body:', errorText);
       throw new Error(`Ticketmaster API error: ${response.status}`);
     }
 
@@ -120,7 +112,6 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error('Error fetching Ticketmaster events:', error);
     return NextResponse.json(
       { error: 'Failed to fetch events from Ticketmaster' },
       { status: 500 }

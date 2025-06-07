@@ -10,7 +10,7 @@ import {
 } from "firebase/auth"
 import { initializeApp, getApps, FirebaseError } from "firebase/app"
 import { getAuth } from "firebase/auth"
-import { getFirestore, doc, setDoc, getDoc } from "firebase/firestore"
+import { getFirestore, doc, setDoc, getDoc, addDoc, collection } from "firebase/firestore"
 
 // Extend the default User type to include role
 declare module "next-auth" {
@@ -70,15 +70,14 @@ export default function SignInPage() {
         const user = userCredential.user
 
         // Add user data to Firestore with role
-        await setDoc(doc(db, "users", user.uid), {
-          name: name || email.split("@")[0],
+        await addDoc(collection(db, "users"), {
+          uid: userCredential.user.uid,
+          name: name,
           email: email,
           role: role,
           createdAt: new Date().toISOString(),
           provider: "email",
         })
-
-        console.log("User created with role:", role)
 
         // Redirect based on role
         const redirectPath = role === "staff" ? "/staff/dashboard" : "/dashboard"

@@ -46,24 +46,14 @@ export default function ViewRegistrationsPage() {
     if (!roleLoading && isStaff) {
       const fetchRegistrations = async () => {
         try {
-          console.log('Fetching registrations...');
           const response = await fetch('/api/registrations/staff');
           
           if (!response.ok) {
             const errorData = await response.json().catch(() => ({}));
-            console.error('API response not ok:', response.status, response.statusText, errorData);
             throw new Error(errorData.error || 'Failed to fetch registrations');
           }
 
           const data = await response.json();
-          console.log('Received data:', {
-            eventsCount: data.events?.length || 0,
-            events: data.events?.map((e: Event) => ({
-              id: e.id,
-              name: e.name,
-              registrationsCount: e.registrations?.length || 0
-            }))
-          });
 
           setEvents(data.events || []);
         } catch (err) {
@@ -94,16 +84,6 @@ export default function ViewRegistrationsPage() {
     : events
         .find(event => event.id === selectedEvent)
         ?.registrations.map(reg => ({ ...reg, eventName: events.find(e => e.id === selectedEvent)?.name || '', eventDate: events.find(e => e.id === selectedEvent)?.startDate || '' })) || [];
-
-  console.log('Filtered registrations:', {
-    selectedEvent,
-    registrationsCount: registrations.length,
-    registrations: registrations.map(r => ({
-      id: r.id,
-      eventName: r.eventName,
-      userName: r.userName
-    }))
-  });
 
   if (loading) {
     return <LoadingSpinner text="Loading registrations..." />;

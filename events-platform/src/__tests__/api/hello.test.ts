@@ -18,7 +18,6 @@ describe("GET /api/hello", () => {
 
     const response = await GET(request);
     const data = await response.json();
-    console.log(data); // Log the response data for debugging
 
     expect(response.status).toBe(200);
     expect(data).toEqual({ message: "Hello, world!" });

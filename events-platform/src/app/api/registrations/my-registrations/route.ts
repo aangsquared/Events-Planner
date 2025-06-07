@@ -33,19 +33,13 @@ const firebaseApp = getApps().length === 0 ? initializeApp(firebaseConfig) : get
 const db = getFirestore(firebaseApp);
 
 export async function GET(request: NextRequest) {
-    console.log('Starting my-registrations request');
     const session = await getServerSession(authOptions);
 
     if (!session?.user) {
-        console.log('No session or user found');
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    console.log('User authenticated:', session.user.id);
-
     try {
-        console.log('Attempting to fetch registrations from Firestore');
-
         // Create a query to only fetch the user's registrations
         const registrationsRef = collection(db, 'registrations');
         const userRegistrationsQuery = query(
@@ -55,7 +49,6 @@ export async function GET(request: NextRequest) {
         );
 
         const registrationsSnapshot = await getDocs(userRegistrationsQuery);
-        console.log('User registrations fetched, count:', registrationsSnapshot.size);
 
         const registrations = registrationsSnapshot.docs
             .map(doc => ({
@@ -81,17 +74,10 @@ export async function GET(request: NextRequest) {
                 return dateA - dateB;
             });
 
-        console.log('Processed registrations count:', processedRegistrations.length);
-
         return NextResponse.json({ registrations: processedRegistrations });
     } catch (error) {
         const fbError = error as FirebaseError;
-        console.error('Detailed error in fetching registrations:', {
-            error: fbError,
-            message: fbError.message,
-            code: fbError.code,
-            stack: fbError.stack
-        });
+        console.error('Error fetching registrations:', fbError.message);
         return NextResponse.json(
             { error: `Failed to fetch registrations: ${fbError.message}` },
             { status: 500 }
