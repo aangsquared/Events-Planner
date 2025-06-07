@@ -4,6 +4,43 @@ import { TicketmasterAPIResponse, TicketmasterAPIEvent, TicketmasterEvent } from
 const TICKETMASTER_API_KEY = process.env.TICKETMASTER_API_KEY;
 const TICKETMASTER_BASE_URL = 'https://app.ticketmaster.com/discovery/v2';
 
+// Mapping platform categories to Ticketmaster segments/classifications
+const CATEGORY_MAPPING = {
+  'Music': 'Music',
+  'Sports': 'Sports',
+  'Arts & Theatre': 'Arts & Theatre',
+  'Comedy': 'Comedy',
+  'Family': 'Family',
+  'Miscellaneous': 'Miscellaneous'
+};
+
+// Function to normalize category from Ticketmaster to platform categories
+function normalizeTmCategoryToPlatform(classification: any): string {
+  if (!classification) return 'Miscellaneous';
+
+  const segment = classification.segment?.name || '';
+  const genre = classification.genre?.name || '';
+
+  // Map Ticketmaster segments/genres to platform categories
+  if (segment === 'Music' || ['Rock', 'Pop', 'Classical', 'Jazz', 'Country', 'Hip-Hop', 'Electronic', 'R&B', 'Folk', 'Alternative', 'Metal', 'Reggae', 'Blues', 'World'].some(g => genre.includes(g))) {
+    return 'Music';
+  }
+  if (segment === 'Sports' || ['Football', 'Basketball', 'Baseball', 'Hockey', 'Soccer', 'Tennis', 'Golf', 'Racing', 'Boxing', 'MMA'].some(g => genre.includes(g))) {
+    return 'Sports';
+  }
+  if (segment === 'Arts & Theatre' || ['Theatre', 'Dance', 'Opera', 'Classical', 'Ballet'].some(g => genre.includes(g))) {
+    return 'Arts & Theatre';
+  }
+  if (segment === 'Comedy' || genre.includes('Comedy')) {
+    return 'Comedy';
+  }
+  if (segment === 'Family' || genre.includes('Family') || genre.includes('Children')) {
+    return 'Family';
+  }
+
+  return 'Miscellaneous';
+}
+
 function transformTicketmasterEvent(tmEvent: TicketmasterAPIEvent): TicketmasterEvent {
   const venue = tmEvent._embedded?.venues?.[0];
   const classification = tmEvent.classifications?.[0];
@@ -26,7 +63,7 @@ function transformTicketmasterEvent(tmEvent: TicketmasterAPIEvent): Ticketmaster
       longitude: venue?.location?.longitude ? parseFloat(venue.location.longitude) : undefined,
     },
     images: tmEvent.images?.map(img => img.url) || [],
-    category: classification?.genre?.name || classification?.segment?.name || 'Entertainment',
+    category: normalizeTmCategoryToPlatform(classification),
     price: tmEvent.priceRanges?.[0] ? {
       amount: tmEvent.priceRanges[0].min,
       currency: tmEvent.priceRanges[0].currency,
@@ -83,7 +120,12 @@ export async function GET(request: NextRequest) {
 
     if (city) params.append('city', city);
     if (keyword) params.append('keyword', keyword);
-    if (category) params.append('classificationName', category);
+
+    // Map platform category to Ticketmaster segment
+    if (category && CATEGORY_MAPPING[category as keyof typeof CATEGORY_MAPPING]) {
+      const tmCategory = CATEGORY_MAPPING[category as keyof typeof CATEGORY_MAPPING];
+      params.append('segmentName', tmCategory);
+    }
 
     // Only get upcoming events
     const now = new Date();
