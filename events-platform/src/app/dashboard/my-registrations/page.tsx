@@ -34,19 +34,14 @@ export default function MyRegistrationsPage() {
     if (!roleLoading && user) {
       const fetchRegistrations = async () => {
         try {
-          console.log('Fetching my registrations...');
           const response = await fetch('/api/registrations/my-registrations');
           
           if (!response.ok) {
             const errorData = await response.json().catch(() => ({}));
-            console.error('API response not ok:', response.status, response.statusText, errorData);
             throw new Error(errorData.error || 'Failed to fetch registrations');
           }
 
           const data = await response.json();
-          console.log('Received registrations:', {
-            count: data.registrations?.length || 0,
-          });
 
           setRegistrations(data.registrations || []);
         } catch (err) {
