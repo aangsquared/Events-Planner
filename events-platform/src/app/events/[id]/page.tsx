@@ -287,9 +287,16 @@ export default function EventDetailsPage() {
                   <button
                     onClick={handleSignUp}
                     disabled={registering}
-                    className="w-full sm:w-auto inline-flex justify-center items-center px-6 py-3 border border-indigo-600 text-base font-medium rounded-md text-indigo-600 bg-white hover:bg-indigo-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
+                    className="w-full sm:w-auto inline-flex justify-center items-center px-6 py-3 border border-indigo-600 text-base font-medium rounded-md text-indigo-600 bg-white hover:bg-indigo-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    {registering ? 'Adding to My Events...' : 'Add to My Events'}
+                    {registering ? (
+                      <div className="flex items-center">
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-indigo-600 mr-2"></div>
+                        Adding to My Events...
+                      </div>
+                    ) : (
+                      'Add to My Events'
+                    )}
                   </button>
                   <AddToCalendarButton
                     eventName={event.name}
@@ -304,9 +311,16 @@ export default function EventDetailsPage() {
                   <button
                     onClick={handleSignUp}
                     disabled={registering}
-                    className="w-full sm:w-auto inline-flex justify-center items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:bg-indigo-400"
+                    className="w-full sm:w-auto inline-flex justify-center items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:bg-indigo-400 disabled:cursor-not-allowed"
                   >
-                    {registering ? 'Signing Up...' : 'Sign Up for Event'}
+                    {registering ? (
+                      <div className="flex items-center">
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                        Signing Up...
+                      </div>
+                    ) : (
+                      'Sign Up for Event'
+                    )}
                   </button>
                   <AddToCalendarButton
                     eventName={event.name}
