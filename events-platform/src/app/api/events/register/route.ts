@@ -23,6 +23,14 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    // Prevent staff members from registering for events
+    if (session.user.role === 'staff' || session.user.role === 'admin') {
+        return NextResponse.json(
+            { error: 'Staff members cannot register for events' },
+            { status: 403 }
+        );
+    }
+
     try {
         const { eventId } = await request.json();
 

@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { Event } from '@/app/types/event';
 import { useSession } from 'next-auth/react';
+import { useRole } from '@/app/hooks/useRole';
 import { format } from 'date-fns';
 import Link from 'next/link';
 import AddToCalendarButton from '@/app/components/AddToCalendarButton';
@@ -14,6 +15,7 @@ export default function EventDetailsPage() {
   const params = useParams();
   const router = useRouter();
   const { data: session } = useSession();
+  const { isStaff } = useRole();
   const [event, setEvent] = useState<Event | null>(null);
   const [loading, setLoading] = useState(true);
   const [registering, setRegistering] = useState(false);
@@ -42,6 +44,12 @@ export default function EventDetailsPage() {
   const handleSignUp = async () => {
     if (!session) {
       router.push('/auth/signin');
+      return;
+    }
+
+    // Prevent staff members from registering
+    if (isStaff) {
+      setError('Staff members cannot register for events');
       return;
     }
 
@@ -147,6 +155,41 @@ export default function EventDetailsPage() {
                 {event.status.charAt(0).toUpperCase() + event.status.slice(1)}
               </span>
             </div>
+
+            {/* Registration Error */}
+            {error && !loading && event && (
+              <div className="mb-6 bg-red-50 border border-red-200 rounded-md p-4">
+                <div className="flex">
+                  <div className="flex-shrink-0">
+                    <svg
+                      className="h-5 w-5 text-red-400"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                  </div>
+                  <div className="ml-3">
+                    <h3 className="text-sm font-medium text-red-800">Registration Error</h3>
+                    <div className="mt-2 text-sm text-red-700">
+                      <p>{error}</p>
+                    </div>
+                    <div className="mt-3">
+                      <button
+                        onClick={() => setError('')}
+                        className="text-sm font-medium text-red-800 hover:text-red-700"
+                      >
+                        Dismiss
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Event Details Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -286,14 +329,21 @@ export default function EventDetailsPage() {
                   </a>
                   <button
                     onClick={handleSignUp}
-                    disabled={registering}
-                    className="w-full sm:w-auto inline-flex justify-center items-center px-6 py-3 border border-indigo-600 text-base font-medium rounded-md text-indigo-600 bg-white hover:bg-indigo-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                    disabled={registering || isStaff}
+                    className={`w-full sm:w-auto inline-flex justify-center items-center px-6 py-3 border text-base font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 ${
+                      isStaff
+                        ? 'border-gray-300 text-gray-400 bg-gray-100 cursor-not-allowed'
+                        : 'border-indigo-600 text-indigo-600 bg-white hover:bg-indigo-50 disabled:opacity-50 disabled:cursor-not-allowed'
+                    }`}
+                    title={isStaff ? 'Staff members cannot register for events' : ''}
                   >
                     {registering ? (
                       <div className="flex items-center">
                         <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-indigo-600 mr-2"></div>
                         Adding to My Events...
                       </div>
+                    ) : isStaff ? (
+                      'Registration Not Available (Staff)'
                     ) : (
                       'Add to My Events'
                     )}
@@ -310,14 +360,21 @@ export default function EventDetailsPage() {
                 <>
                   <button
                     onClick={handleSignUp}
-                    disabled={registering}
-                    className="w-full sm:w-auto inline-flex justify-center items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:bg-indigo-400 disabled:cursor-not-allowed"
+                    disabled={registering || isStaff}
+                    className={`w-full sm:w-auto inline-flex justify-center items-center px-6 py-3 border border-transparent text-base font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 ${
+                      isStaff
+                        ? 'text-gray-400 bg-gray-300 cursor-not-allowed'
+                        : 'text-white bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 disabled:cursor-not-allowed'
+                    }`}
+                    title={isStaff ? 'Staff members cannot register for events' : ''}
                   >
                     {registering ? (
                       <div className="flex items-center">
                         <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
                         Signing Up...
                       </div>
+                    ) : isStaff ? (
+                      'Registration Not Available (Staff)'
                     ) : (
                       'Sign Up for Event'
                     )}
@@ -332,6 +389,33 @@ export default function EventDetailsPage() {
                 </>
               )}
             </div>
+
+            {/* Staff Notice */}
+            {isStaff && (
+              <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-md">
+                <div className="flex">
+                  <div className="flex-shrink-0">
+                    <svg
+                      className="h-5 w-5 text-blue-600"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                  </div>
+                  <div className="ml-3">
+                    <h3 className="text-sm font-medium text-blue-900">Staff Member Notice</h3>
+                    <div className="mt-2 text-sm text-gray-800">
+                      <p>As a staff member, you cannot register for events. You can still view event details and add events to your calendar.</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
