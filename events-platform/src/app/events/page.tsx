@@ -112,6 +112,7 @@ export default function EventsPage() {
 
   const formatPrice = (event: Event) => {
     if (!event.price) return "Price TBA";
+    if (Number(event.price.amount) === 0) return "Free";
     return `${event.price.currency} ${event.price.amount}`;
   }
 

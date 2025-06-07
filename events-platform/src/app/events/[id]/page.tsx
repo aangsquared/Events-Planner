@@ -239,7 +239,7 @@ export default function EventDetailsPage() {
                       Price
                     </h2>
                     <p className="text-gray-600">
-                      {event.price.currency} {event.price.amount}
+                      {Number(event.price.amount) === 0 ? "Free" : `${event.price.currency} ${event.price.amount}`}
                     </p>
                   </div>
                 )}
