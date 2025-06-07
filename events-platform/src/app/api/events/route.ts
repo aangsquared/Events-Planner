@@ -3,7 +3,7 @@ import { Event, EventFilters, PlatformEvent, TicketmasterEvent } from '@/app/typ
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
-  
+
   const filters: EventFilters = {
     category: searchParams.get('category') || undefined,
     city: searchParams.get('city') || undefined,
@@ -22,12 +22,12 @@ export async function GET(request: NextRequest) {
       try {
         const platformResponse = await fetch(
           `${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/events/platform`,
-          { 
+          {
             headers: { 'Content-Type': 'application/json' },
             next: { revalidate: 300 } // Cache for 5 minutes
           }
         );
-        
+
         if (platformResponse.ok) {
           const platformData = await platformResponse.json();
           allEvents.push(...platformData.events);
@@ -49,12 +49,12 @@ export async function GET(request: NextRequest) {
 
         const tmResponse = await fetch(
           `${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/events/ticketmaster?${tmParams}`,
-          { 
+          {
             headers: { 'Content-Type': 'application/json' },
             next: { revalidate: 600 } // Cache for 10 minutes
           }
         );
-        
+
         if (tmResponse.ok) {
           const tmData = await tmResponse.json();
           allEvents.push(...tmData.events);
@@ -77,10 +77,15 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    // Only apply category filtering to platform events since Ticketmaster events are already filtered at source
     if (filters.category) {
-      filteredEvents = filteredEvents.filter(event =>
-        event.category.toLowerCase().includes(filters.category!.toLowerCase())
-      );
+      filteredEvents = filteredEvents.filter(event => {
+        if (event.source === 'platform') {
+          return event.category.toLowerCase().includes(filters.category!.toLowerCase());
+        }
+        // For Ticketmaster events, they're already filtered at the API level, so include them all
+        return true;
+      });
     }
 
     if (filters.city) {
