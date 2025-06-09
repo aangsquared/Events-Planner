@@ -17,10 +17,10 @@ const db = getFirestore(firebaseApp);
 
 export async function GET(
     request: NextRequest,
-    context: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
-        const id = context.params.id;
+        const { id } = await params;
 
         // If it's a Ticketmaster event (ID starts with 'tm_')
         if (id.startsWith('tm_')) {

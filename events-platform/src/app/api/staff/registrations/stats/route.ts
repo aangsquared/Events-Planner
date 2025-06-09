@@ -4,6 +4,12 @@ import { authOptions } from '@/app/lib/auth';
 import { db } from '@/lib/firebase/firebase';
 import { collection, getDocs, query, where, Timestamp } from 'firebase/firestore';
 
+interface FirestoreRegistration {
+    id: string;
+    registeredAt: Timestamp | string;
+    status: string;
+}
+
 export async function GET(request: NextRequest) {
     try {
         // Check if user is authenticated and is staff
@@ -26,7 +32,7 @@ export async function GET(request: NextRequest) {
         const registrations = registrationsSnapshot.docs.map(doc => ({
             id: doc.id,
             ...doc.data()
-        }));
+        })) as FirestoreRegistration[];
 
         // Calculate statistics
         const now = new Date();
@@ -35,7 +41,7 @@ export async function GET(request: NextRequest) {
 
         const totalRegistrations = registrations.length;
 
-        const todayRegistrations = registrations.filter((registration: any) => {
+        const todayRegistrations = registrations.filter((registration: FirestoreRegistration) => {
             let regDate;
             if (registration.registeredAt instanceof Timestamp) {
                 regDate = registration.registeredAt.toDate();
@@ -45,7 +51,7 @@ export async function GET(request: NextRequest) {
             return regDate >= today && regDate < tomorrow;
         }).length;
 
-        const pendingRegistrations = registrations.filter((registration: any) => {
+        const pendingRegistrations = registrations.filter((registration: FirestoreRegistration) => {
             return registration.status === 'registered'; // Active registrations that haven't been processed
         }).length;
 

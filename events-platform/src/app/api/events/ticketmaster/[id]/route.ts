@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { TicketmasterAPIEvent, TicketmasterEvent } from '@/app/types/event';
+import { TicketmasterAPIEvent, TicketmasterEvent, TicketmasterClassification } from '@/app/types/event';
 
 const TICKETMASTER_API_KEY = process.env.TICKETMASTER_API_KEY;
 const TICKETMASTER_BASE_URL = 'https://app.ticketmaster.com/discovery/v2';
 
 // Function to normalize category from Ticketmaster to platform categories
-function normalizeTmCategoryToPlatform(classification: any): string {
+function normalizeTmCategoryToPlatform(classification: TicketmasterClassification | undefined): string {
     if (!classification) return 'Miscellaneous';
 
     const segment = classification.segment?.name || '';
@@ -86,7 +86,7 @@ function transformTicketmasterEvent(tmEvent: TicketmasterAPIEvent): Ticketmaster
 
 export async function GET(
     request: NextRequest,
-    context: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     if (!TICKETMASTER_API_KEY) {
         return NextResponse.json(
@@ -96,8 +96,9 @@ export async function GET(
     }
 
     try {
+        const { id } = await params;
         const response = await fetch(
-            `${TICKETMASTER_BASE_URL}/events/${context.params.id}?apikey=${TICKETMASTER_API_KEY}`
+            `${TICKETMASTER_BASE_URL}/events/${id}?apikey=${TICKETMASTER_API_KEY}`
         );
 
         if (!response.ok) {

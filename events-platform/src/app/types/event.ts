@@ -330,3 +330,15 @@ export interface TicketmasterAPIEvent {
     }>;
   };
 }
+
+export interface TicketmasterClassification {
+  segment?: {
+    name: string;
+  };
+  genre?: {
+    name: string;
+  };
+  subGenre?: {
+    name?: string;
+  };
+}

@@ -83,7 +83,7 @@ export default function EventsPage() {
 
   useEffect(() => {
     fetchEvents(0)
-  }, [filters])
+  }, [fetchEvents, filters])
 
   const handleFilterChange = (key: keyof EventFilters, value: string) => {
     setFilters((prev) => ({

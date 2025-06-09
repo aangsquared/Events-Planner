@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { TicketmasterAPIResponse, TicketmasterAPIEvent, TicketmasterEvent } from '@/app/types/event';
+import { TicketmasterAPIResponse, TicketmasterAPIEvent, TicketmasterEvent, TicketmasterClassification } from '@/app/types/event';
 
 const TICKETMASTER_API_KEY = process.env.TICKETMASTER_API_KEY;
 const TICKETMASTER_BASE_URL = 'https://app.ticketmaster.com/discovery/v2';
@@ -15,7 +15,7 @@ const CATEGORY_MAPPING = {
 };
 
 // Function to normalize category from Ticketmaster to platform categories
-function normalizeTmCategoryToPlatform(classification: any): string {
+function normalizeTmCategoryToPlatform(classification: TicketmasterClassification | undefined): string {
   if (!classification) return 'Miscellaneous';
 
   const segment = classification.segment?.name || '';
