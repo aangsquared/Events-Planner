@@ -11,7 +11,7 @@ import {
 } from "firebase/auth"
 import { initializeApp, getApps, FirebaseError } from "firebase/app"
 import { getAuth } from "firebase/auth"
-import { getFirestore, doc, setDoc, getDoc, addDoc, collection } from "firebase/firestore"
+import { getFirestore, doc, setDoc, getDoc } from "firebase/firestore"
 import Link from "next/link"
 
 // Extend the default User type to include role
@@ -91,7 +91,7 @@ export default function SignInPage() {
         const user = userCredential.user
 
         // Add user data to Firestore with role
-        await addDoc(collection(db, "users"), {
+        await setDoc(doc(db, "users", userCredential.user.uid), {
           uid: userCredential.user.uid,
           name: name,
           email: email,
@@ -308,6 +308,7 @@ export default function SignInPage() {
             {error && (
               <div className="text-red-600 text-sm text-center">{error}</div>
             )}
+
 
             <div>
               <button
