@@ -7,10 +7,12 @@ import Image from "next/image"
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
+  fetchSignInMethodsForEmail
 } from "firebase/auth"
 import { initializeApp, getApps, FirebaseError } from "firebase/app"
 import { getAuth } from "firebase/auth"
 import { getFirestore, doc, setDoc, getDoc, addDoc, collection } from "firebase/firestore"
+import Link from "next/link"
 
 // Extend the default User type to include role
 declare module "next-auth" {
@@ -35,6 +37,16 @@ const firebaseApp =
   getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0]
 const auth = getAuth(firebaseApp)
 const db = getFirestore(firebaseApp)
+
+const checkEmailExists = async (email: string) => {
+  try {
+    const signInMethods = await fetchSignInMethodsForEmail(auth, email)
+    return signInMethods.length > 0
+  } catch (error) {
+    console.error("Error checking email:", error)
+    return false
+  }
+}
 
 export default function SignInPage() {
   const [isSignUp, setIsSignUp] = useState(false)
@@ -61,7 +73,16 @@ export default function SignInPage() {
 
     try {
       if (isSignUp) {
-        // Create new user
+        // Check if email already exists before attempting to create account
+        const emailExists = await checkEmailExists(email)
+        if (emailExists) {
+          setError("An account with this email already exists. Please sign in instead.")
+          setIsSignUp(false) // Switch to sign-in mode
+          setLoading(false)
+          return
+        }
+
+        // Proceed with account creation...
         const userCredential = await createUserWithEmailAndPassword(
           auth,
           email,
@@ -105,9 +126,29 @@ export default function SignInPage() {
     } catch (err: unknown) {
       console.error("Auth error:", err)
       if (err instanceof FirebaseError) {
-        setError(err.message)
+        // Handle specific Firebase auth errors
+        switch (err.code) {
+          case 'auth/email-already-in-use':
+            setError("An account with this email already exists. Please sign in instead.")
+            setIsSignUp(false)
+            break
+          case 'auth/weak-password':
+            setError("Password is too weak. Please choose a stronger password with at least 6 characters.")
+            break
+          case 'auth/invalid-email':
+            setError("Please enter a valid email address.")
+            break
+          case 'auth/operation-not-allowed':
+            setError("Email/password accounts are not enabled. Please contact support.")
+            break
+          case 'auth/too-many-requests':
+            setError("Too many unsuccessful attempts. Please try again later.")
+            break
+          default:
+            setError(err.message || "An error occurred during account creation. Please try again.")
+        }
       } else {
-        setError("Authentication failed")
+        setError("Authentication failed. Please try again.")
       }
     } finally {
       setLoading(false)
@@ -340,6 +381,35 @@ export default function SignInPage() {
                 </svg>
                 <span className="ml-2">Facebook</span>
               </button>
+            </div>
+
+            {/* Browse Events Option */}
+            <div className="mt-6">
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-gray-300" />
+                </div>
+                <div className="relative flex justify-center text-sm">
+                  <span className="px-2 bg-white text-gray-500">
+                    Or continue browsing
+                  </span>
+                </div>
+              </div>
+
+              <div className="mt-4">
+                <Link
+                  href="/events"
+                  className="w-full flex justify-center items-center py-2 px-4 border border-gray-300 rounded-md shadow-sm bg-gray-50 text-sm font-medium text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors"
+                >
+                  <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                  Browse Events Without Account
+                </Link>
+                <p className="mt-2 text-xs text-center text-gray-500">
+                  Explore events and add them to your calendar. Sign up later to register for events.
+                </p>
+              </div>
             </div>
           </div>
         </div>

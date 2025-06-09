@@ -63,8 +63,47 @@ export default function MyRegistrationsPage() {
 
   // Redirect if not logged in
   if (!roleLoading && !user) {
-    router.push('/auth/signin');
-    return null;
+    return (
+      <div className="min-h-screen bg-gray-100">
+        <DashboardHeader 
+          title="My Registrations" 
+          subtitle="View your event registrations" 
+        />
+        <div className="py-8">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="bg-white shadow overflow-hidden sm:rounded-lg">
+              <div className="px-4 py-8 sm:p-6 text-center">
+                <div className="mb-4">
+                  <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                  </svg>
+                </div>
+                <h3 className="text-lg font-medium text-gray-900 mb-2">
+                  Sign in to access your registrations
+                </h3>
+                <p className="text-gray-500 mb-6">
+                  To access your event registrations, you must create an account or sign in to your existing account.
+                </p>
+                <div className="space-y-3 sm:space-y-0 sm:space-x-3 sm:flex sm:justify-center">
+                  <Link
+                    href="/auth/signin"
+                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                  >
+                    Sign In / Create Account
+                  </Link>
+                  <Link
+                    href="/events"
+                    className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                  >
+                    Browse Events Instead
+                  </Link>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   if (loading) {

@@ -73,6 +73,18 @@ const UserDropdown = ({
     };
   }, [isOpen]);
 
+  // If user is not authenticated, show sign in button
+  if (!user) {
+    return (
+      <Link
+        href="/auth/signin"
+        className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+      >
+        Sign In
+      </Link>
+    );
+  }
+
   return (
     <div className="relative" ref={dropdownRef}>
       <button
@@ -103,15 +115,6 @@ const UserDropdown = ({
           className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg py-1 z-[110]"
           role="menu"
         >
-          <Link
-            href="/account/settings"
-            className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
-            role="menuitem"
-            onClick={() => setIsOpen(false)}
-          >
-            <Settings size={16} className="mr-3" />
-            Account Settings
-          </Link>
           <button
             onClick={() => {
               setIsOpen(false);
@@ -134,14 +137,19 @@ const MobileMenu = ({
   onClose,
   isStaff,
   currentPath,
+  user,
 }: {
   isOpen: boolean;
   onClose: () => void;
   isStaff: boolean;
   currentPath: string;
+  user: NextAuthUser | null | undefined;
 }) => {
-  const navItems = isStaff
+  const navItems = !user 
+    ? [] // No navigation items for anonymous users
+    : isStaff
     ? [
+        { href: '/staff/dashboard', icon: Home, label: 'Dashboard' },
         { href: '/staff/events/create', icon: PlusCircle, label: 'Create Event' },
         { href: '/staff/events', icon: Edit2, label: 'Manage Events' },
         { href: '/staff/registrations', icon: Users, label: 'View Registrations' },
@@ -179,21 +187,27 @@ const MobileMenu = ({
           </button>
         </div>
         <div className="flex-1 overflow-y-auto py-4">
-          {navItems.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={`flex items-center px-4 py-3 text-sm font-medium ${
-                currentPath === item.href
-                  ? 'text-blue-600 bg-blue-50'
-                  : 'text-gray-700 hover:bg-gray-50'
-              }`}
-              onClick={onClose}
-            >
-              <item.icon size={20} className="mr-3" />
-              {item.label}
-            </Link>
-          ))}
+          {navItems.length > 0 ? (
+            navItems.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={`flex items-center px-4 py-3 text-sm font-medium ${
+                  currentPath === item.href
+                    ? 'text-blue-600 bg-blue-50'
+                    : 'text-gray-700 hover:bg-gray-50'
+                }`}
+                onClick={onClose}
+              >
+                <item.icon size={20} className="mr-3" />
+                {item.label}
+              </Link>
+            ))
+          ) : (
+            <div className="px-4 py-8 text-center text-gray-500">
+              <p className="text-sm">Sign in to access navigation menu</p>
+            </div>
+          )}
         </div>
       </nav>
     </>
@@ -215,7 +229,10 @@ export default function Header() {
     return null;
   }
 
-  const navItems = isStaff
+  // Navigation items based on authentication and role
+  const navItems = !user 
+    ? [] // No navigation items for anonymous users
+    : isStaff
     ? [
         { href: '/staff/dashboard', icon: Home, label: 'Dashboard' },
         { href: '/staff/events/create', icon: PlusCircle, label: 'Create Event' },
@@ -228,23 +245,27 @@ export default function Header() {
         { href: '/dashboard/my-registrations', icon: Ticket, label: 'My Registrations' },
       ];
 
+  const logoHref = !user ? '/events' : isStaff ? '/staff/dashboard' : '/dashboard';
+
   return (
     <header className="bg-white border-b h-16 fixed top-0 left-0 right-0 w-full z-[100] shadow-sm">
       <div className="w-full h-full flex items-center justify-between px-4 sm:px-6 lg:px-8 max-w-none lg:max-w-7xl lg:mx-auto min-w-0">
         {/* Mobile menu button */}
-        <div className="flex items-center md:hidden flex-shrink-0">
-          <button
-            className="p-2 rounded-lg text-gray-500 hover:bg-gray-50 flex-shrink-0"
-            onClick={() => setIsMobileMenuOpen(true)}
-            aria-label="Open menu"
-          >
-            <Menu size={24} />
-          </button>
-        </div>
+        {navItems.length > 0 && (
+          <div className="flex items-center md:hidden flex-shrink-0">
+            <button
+              className="p-2 rounded-lg text-gray-500 hover:bg-gray-50 flex-shrink-0"
+              onClick={() => setIsMobileMenuOpen(true)}
+              aria-label="Open menu"
+            >
+              <Menu size={24} />
+            </button>
+          </div>
+        )}
 
         {/* Logo - Always centered on mobile, left-aligned on desktop */}
         <div className="flex-1 flex justify-center md:justify-start md:flex-none min-w-0">
-          <Link href={isStaff ? '/staff/dashboard' : '/dashboard'} className="flex-shrink-0">
+          <Link href={logoHref} className="flex-shrink-0">
             <span className="text-xl font-bold text-gray-900 truncate">Events Planner</span>
           </Link>
         </div>
@@ -273,6 +294,7 @@ export default function Header() {
           onClose={() => setIsMobileMenuOpen(false)}
           isStaff={isStaff}
           currentPath={pathname}
+          user={user}
         />
       </div>
     </header>
