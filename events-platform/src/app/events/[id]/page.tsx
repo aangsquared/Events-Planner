@@ -43,8 +43,7 @@ export default function EventDetailsPage() {
 
   const handleSignUp = async () => {
     if (!session) {
-      router.push('/auth/signin');
-      return;
+      return; // Don't redirect, let the UI handle it
     }
 
     // Prevent staff members from registering
@@ -327,27 +326,36 @@ export default function EventDetailsPage() {
                   >
                     Buy Tickets on Ticketmaster
                   </a>
-                  <button
-                    onClick={handleSignUp}
-                    disabled={registering || isStaff}
-                    className={`w-full sm:w-auto inline-flex justify-center items-center px-6 py-3 border text-base font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 ${
-                      isStaff
-                        ? 'border-gray-300 text-gray-400 bg-gray-100 cursor-not-allowed'
-                        : 'border-indigo-600 text-indigo-600 bg-white hover:bg-indigo-50 disabled:opacity-50 disabled:cursor-not-allowed'
-                    }`}
-                    title={isStaff ? 'Staff members cannot register for events' : ''}
-                  >
-                    {registering ? (
-                      <div className="flex items-center">
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-indigo-600 mr-2"></div>
-                        Adding to My Events...
-                      </div>
-                    ) : isStaff ? (
-                      'Registration Not Available (Staff)'
-                    ) : (
-                      'Add to My Events'
-                    )}
-                  </button>
+                  {!session ? (
+                    <Link
+                      href="/auth/signin"
+                      className="w-full sm:w-auto inline-flex justify-center items-center px-6 py-3 border border-indigo-600 text-base font-medium rounded-md text-indigo-600 bg-white hover:bg-indigo-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                    >
+                      Sign In to Add to My Events
+                    </Link>
+                  ) : (
+                    <button
+                      onClick={handleSignUp}
+                      disabled={registering || isStaff}
+                      className={`w-full sm:w-auto inline-flex justify-center items-center px-6 py-3 border text-base font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 ${
+                        isStaff
+                          ? 'border-gray-300 text-gray-400 bg-gray-100 cursor-not-allowed'
+                          : 'border-indigo-600 text-indigo-600 bg-white hover:bg-indigo-50 disabled:opacity-50 disabled:cursor-not-allowed'
+                      }`}
+                      title={isStaff ? 'Staff members cannot register for events' : ''}
+                    >
+                      {registering ? (
+                        <div className="flex items-center">
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-indigo-600 mr-2"></div>
+                          Adding to My Events...
+                        </div>
+                      ) : isStaff ? (
+                        'Registration Not Available (Staff)'
+                      ) : (
+                        'Add to My Events'
+                      )}
+                    </button>
+                  )}
                   <AddToCalendarButton
                     eventName={event.name}
                     startTime={event.startDate}
@@ -358,27 +366,36 @@ export default function EventDetailsPage() {
                 </>
               ) : (
                 <>
-                  <button
-                    onClick={handleSignUp}
-                    disabled={registering || isStaff}
-                    className={`w-full sm:w-auto inline-flex justify-center items-center px-6 py-3 border border-transparent text-base font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 ${
-                      isStaff
-                        ? 'text-gray-400 bg-gray-300 cursor-not-allowed'
-                        : 'text-white bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 disabled:cursor-not-allowed'
-                    }`}
-                    title={isStaff ? 'Staff members cannot register for events' : ''}
-                  >
-                    {registering ? (
-                      <div className="flex items-center">
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                        Signing Up...
-                      </div>
-                    ) : isStaff ? (
-                      'Registration Not Available (Staff)'
-                    ) : (
-                      'Sign Up for Event'
-                    )}
-                  </button>
+                  {!session ? (
+                    <Link
+                      href="/auth/signin"
+                      className="w-full sm:w-auto inline-flex justify-center items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                    >
+                      Sign In to Register for Event
+                    </Link>
+                  ) : (
+                    <button
+                      onClick={handleSignUp}
+                      disabled={registering || isStaff}
+                      className={`w-full sm:w-auto inline-flex justify-center items-center px-6 py-3 border border-transparent text-base font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 ${
+                        isStaff
+                          ? 'text-gray-400 bg-gray-300 cursor-not-allowed'
+                          : 'text-white bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 disabled:cursor-not-allowed'
+                      }`}
+                      title={isStaff ? 'Staff members cannot register for events' : ''}
+                    >
+                      {registering ? (
+                        <div className="flex items-center">
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                          Signing Up...
+                        </div>
+                      ) : isStaff ? (
+                        'Registration Not Available (Staff)'
+                      ) : (
+                        'Sign Up for Event'
+                      )}
+                    </button>
+                  )}
                   <AddToCalendarButton
                     eventName={event.name}
                     startTime={event.startDate}
@@ -389,6 +406,33 @@ export default function EventDetailsPage() {
                 </>
               )}
             </div>
+
+            {/* Anonymous User Notice */}
+            {!session && (
+              <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-md">
+                <div className="flex">
+                  <div className="flex-shrink-0">
+                    <svg
+                      className="h-5 w-5 text-blue-600"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                  </div>
+                  <div className="ml-3">
+                    <h3 className="text-sm font-medium text-blue-900">Sign in required</h3>
+                    <div className="mt-2 text-sm text-gray-800">
+                      <p>To register for events and manage your registrations, you need to create an account or sign in. You can still browse events and add them to your calendar.</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Staff Notice */}
             {isStaff && (

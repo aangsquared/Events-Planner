@@ -19,7 +19,7 @@ export default function DashboardHeader({ title, subtitle }: DashboardHeaderProp
               {title}
             </h1>
             <p className="text-gray-600">
-              {subtitle || `Welcome back, ${user?.name || 'User'}! (${role})`}
+              {subtitle || (user ? `Welcome back, ${user?.name || 'User'}! (${role})` : 'Discover and explore events')}
             </p>
           </div>
         </div>
