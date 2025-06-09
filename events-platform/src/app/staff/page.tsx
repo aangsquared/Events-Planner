@@ -35,12 +35,6 @@ export default function StaffDashboardPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  // Redirect if not staff
-  if (!isStaff) {
-    router.push('/unauthorised');
-    return null;
-  }
-
   useEffect(() => {
     const fetchEvents = async () => {
       try {
@@ -58,8 +52,16 @@ export default function StaffDashboardPage() {
       }
     };
 
-    fetchEvents();
-  }, []);
+    if (isStaff) {
+      fetchEvents();
+    }
+  }, [isStaff]);
+
+  // Redirect if not staff
+  if (!isStaff) {
+    router.push('/unauthorised');
+    return null;
+  }
 
   const handleDeleteEvent = async (eventId: string) => {
     if (!confirm('Are you sure you want to delete this event? This action cannot be undone.')) {

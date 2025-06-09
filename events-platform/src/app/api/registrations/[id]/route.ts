@@ -18,7 +18,7 @@ const db = getFirestore(firebaseApp);
 
 export async function DELETE(
     request: NextRequest,
-    context: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     const session = await getServerSession(authOptions);
 
@@ -27,7 +27,7 @@ export async function DELETE(
     }
 
     try {
-        const registrationId = context.params.id;
+        const { id: registrationId } = await params;
         const registrationRef = doc(db, 'registrations', registrationId);
         const registrationDoc = await getDoc(registrationRef);
 

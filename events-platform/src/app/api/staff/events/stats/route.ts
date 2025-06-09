@@ -4,6 +4,12 @@ import { authOptions } from '@/app/lib/auth';
 import { db } from '@/lib/firebase/firebase';
 import { collection, getDocs, query, where, Timestamp } from 'firebase/firestore';
 
+interface FirestoreEvent {
+    id: string;
+    startDate: Timestamp | string;
+    status: string;
+}
+
 export async function GET(request: NextRequest) {
     try {
         // Check if user is authenticated and is staff
@@ -26,13 +32,13 @@ export async function GET(request: NextRequest) {
         const events = eventsSnapshot.docs.map(doc => ({
             id: doc.id,
             ...doc.data()
-        }));
+        })) as FirestoreEvent[];
 
         // Calculate statistics
         const now = new Date();
         const totalEvents = events.length;
 
-        const upcomingEvents = events.filter((event: any) => {
+        const upcomingEvents = events.filter((event: FirestoreEvent) => {
             let startDate;
             if (event.startDate instanceof Timestamp) {
                 startDate = event.startDate.toDate();
@@ -42,7 +48,7 @@ export async function GET(request: NextRequest) {
             return startDate > now && event.status === 'active';
         }).length;
 
-        const pastEvents = events.filter((event: any) => {
+        const pastEvents = events.filter((event: FirestoreEvent) => {
             let startDate;
             if (event.startDate instanceof Timestamp) {
                 startDate = event.startDate.toDate();

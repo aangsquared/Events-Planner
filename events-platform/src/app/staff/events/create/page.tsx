@@ -357,7 +357,7 @@ export default function CreateEventPage() {
                                 name: 'startTime',
                                 value: newValue ? newValue.format('HH:mm') : ''
                               }
-                            } as any);
+                            } as React.ChangeEvent<HTMLInputElement>);
                           }}
                           slotProps={{
                             textField: {
@@ -405,7 +405,7 @@ export default function CreateEventPage() {
                                 name: 'endTime',
                                 value: newValue ? newValue.format('HH:mm') : ''
                               }
-                            } as any);
+                            } as React.ChangeEvent<HTMLInputElement>);
                           }}
                           slotProps={{
                             textField: {
