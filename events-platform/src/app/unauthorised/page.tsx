@@ -9,7 +9,7 @@ export default function UnauthorisedPage() {
   const { user, role, isLoading, isAuthenticated } = useRole();
 
   const handleRefresh = () => {
-    window.location.reload();
+    router.refresh();
   };
 
   return (
