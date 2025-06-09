@@ -64,8 +64,21 @@ export async function GET(request: NextRequest) {
       }
     }
 
+    // Filter out platform events that have already ended
+    const currentDate = new Date();
+    const filteredByDateEvents = allEvents.filter(event => {
+      // Only filter platform events by end date
+      if (event.source === 'platform' && event.endDate) {
+        const eventEndDate = new Date(event.endDate);
+        // Keep the event if it hasn't ended yet
+        return eventEndDate > currentDate;
+      }
+      // Keep all Ticketmaster events and platform events without end dates
+      return true;
+    });
+
     // Apply additional filtering
-    let filteredEvents = allEvents;
+    let filteredEvents = filteredByDateEvents;
 
     if (filters.search) {
       const searchLower = filters.search.toLowerCase();
