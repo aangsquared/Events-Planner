@@ -33,7 +33,7 @@ This platform was built for a small community business to create and share event
 - **Database**: Firebase Firestore
 - **Styling**: Tailwind CSS, Material-UI components
 - **APIs**: Ticketmaster Discovery API, Google Calendar API
-- **Deployment**: Railwayy
+- **Deployment**: Railway
 
 ## 📋 Prerequisites
 
